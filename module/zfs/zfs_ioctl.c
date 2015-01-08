@@ -1544,9 +1544,6 @@ dump_one_dir(const char *dsname, void *arg)
 	int error;
 	objset_t *os;
 
-	#ifdef _KERNEL
-	printk("Could not open %s, error %d\n", dsname, error);
-	#endif
 	 error = dmu_objset_hold(dsname, FTAG, &os);
 	//error = dmu_objset_own(dsname, DMU_OST_ZFS, B_FALSE, FTAG, &os);
 	if (error) {
