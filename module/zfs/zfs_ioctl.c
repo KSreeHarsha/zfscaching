@@ -1459,7 +1459,7 @@ void dmu_read_write(objset_t *os, uint64_t object,uint64_t offset,uint64_t size)
 
 	// Read the contents of the object
 
-	dmu_err=dmu_read(os,object,offset,size,buf,DMU_READ_NO_PREFETCH);
+	dmu_err=dmu_read(os,object,offset,DMU_OBJECT_END,buf,DMU_READ_NO_PREFETCH);
 	#ifdef _KERNEL
 	printk("Contents of the file are:%s\r\n",(char*)buf);
 	#endif
@@ -1471,7 +1471,7 @@ void dmu_read_write(objset_t *os, uint64_t object,uint64_t offset,uint64_t size)
 	printk("Transaction group is %d\r\n",txg);
     #endif
 				if (assign_err == 0) {
-						dmu_write(os,object, offset+1, size,buf, tx);
+						dmu_write(os,object, offset+1, DMU_OBJECT_END,buf, tx);
 						dmu_tx_commit(tx);
 						#ifdef _KERNEL
 						printk("Commiting Txg\r\n");
@@ -1570,7 +1570,7 @@ sync_object(objset_t *os, uint64_t object, int *print_header)
 			printk("Object size is : %d\n",object_size);
 			printk("File size is : %d\n",fsize);
 #endif
-			dmu_read_write(os, object,0,2);
+			dmu_read_write(os, object,0,object_size);
 		}
 
 }
