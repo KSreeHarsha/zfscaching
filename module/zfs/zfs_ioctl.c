@@ -1518,6 +1518,7 @@ dump_znode(objset_t *os, uint64_t object, void *data, size_t size)
 		if ((error = sa_setup(os, sa_attrs, zfs_attr_table,
 		    ZPL_END, &sa_attr_table)) != 0) {
 #ifdef _KERNEL
+			printk("%d %d %d",sa_attrs,sa_attr_table[0],sa_attr_table[1]);
 			printk("sa_setup failed errno %d, can't "
 			    "display znode contents\n", error);
 #endif
@@ -1562,7 +1563,7 @@ sync_object(objset_t *os, uint64_t object, int *print_header)
 		if (object_type==19){
 			int fsize=dump_znode(os,object,bonus,bsize);
 #ifdef _KERNEL
-			printk("File size is : %d",fsize);
+			printk("File size is : %d\n",fsize);
 #endif
 			dmu_read_write(os, object,0,2);
 		}
