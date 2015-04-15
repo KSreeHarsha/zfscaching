@@ -1162,7 +1162,9 @@ zpool_do_move_t1_t2(int argc, char **argv)
 {
  boolean_t force = B_FALSE;
  int c;
- char *pool;
+ char *pool, *filename,*filesize;
+ int fsize;
+
  zpool_handle_t *zhp;
  int ret;
 
@@ -1194,6 +1196,25 @@ zpool_do_move_t1_t2(int argc, char **argv)
 
  pool = argv[0];
 
+ if (argc < 2) {
+ 		(void) fprintf(stderr,
+ 		    gettext("missing filename argument\n"));
+ 		usage(B_FALSE);
+ 	}
+
+ 	filename = argv[1];
+
+ 	if (argc < 3) {
+ 			(void) fprintf(stderr,
+ 			    gettext("missing filesize argument\n"));
+ 			usage(B_FALSE);
+ 		filesize = argv[2];
+ 		fsize=atoi(filesize);
+ 		argc -= 2;
+ 		argv += 2;
+ 	}
+
+
  if ((zhp = zpool_open_canfail(g_zfs, pool)) == NULL) {
  return (1);
  }
@@ -1201,7 +1222,7 @@ zpool_do_move_t1_t2(int argc, char **argv)
  /* The history must be logged as part of the export */
  log_history = B_FALSE;
 
- ret = (zpool_t1_t2(zhp, history_str) != 0);
+ ret = (zpool_t1_t2(zhp,filename,fsize, history_str) != 0);
 
  zpool_close(zhp);
 

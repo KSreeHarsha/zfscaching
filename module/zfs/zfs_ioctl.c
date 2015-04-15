@@ -1608,7 +1608,7 @@ dump_one_dir(const char *dsname, void *arg)
 }
 
 static void
-dump_zpool(spa_t *spa)
+dump_zpool(spa_t *spa,char* filename,int filesize)
 {
 	//dsl_pool_t *dp = spa_get_dsl(spa);
     //dump_dir(dp->dp_meta_objset);
@@ -1621,6 +1621,10 @@ zfs_ioc_pool_movet1t2(zfs_cmd_t *zc)
 {
 	int error=0;
 	spa_t *spa;
+	char  *filname;
+	uint64_t filesize=0;
+	(void) strlcpy(filename, zc->zc_nvlist_src, sizeof (filename));
+	filesize=zc->zc_nvlist_src_size;
 	//error = spa_destroy(zc->zc_name);
 	if ((spa = spa_lookup(zc->zc_name)) == NULL) {
 	#ifdef _KERNEL
@@ -1629,6 +1633,7 @@ zfs_ioc_pool_movet1t2(zfs_cmd_t *zc)
 	 }
 	dump_zpool(spa);
  	 #ifdef _KERNEL
+	printk("Filename: %s Filesize: %d:",filename,filesize);
 	printk("Move data from tier 1 to tier 2\r\n");
 	#endif
 	return (error);
