@@ -1584,7 +1584,7 @@ sync_object(objset_t *os, uint64_t object, int *print_header)
 						end = start;
 						error = dnode_next_offset(dn,
 						    DNODE_FIND_HOLE, &end, minlvl, blkfill, 0);
-						zdb_nicenum(end - start, segsize);
+						segsize=end - start;
                         #ifdef _KERNEL
 						    printk("\t\tsegment [%016llx, %016llx)"
 						    " size %5s\n", (u_longlong_t)start,
