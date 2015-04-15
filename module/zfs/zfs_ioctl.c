@@ -1576,7 +1576,7 @@ sync_object(objset_t *os, uint64_t object, int *print_header)
 					}
 
 					for (;;) {
-						char segsize[32];
+						uint64_t segsize;
 						error = dnode_next_offset(dn,
 						    0, &start, minlvl, blkfill, 0);
 						if (error)
@@ -1587,7 +1587,7 @@ sync_object(objset_t *os, uint64_t object, int *print_header)
 						segsize=end - start;
                         #ifdef _KERNEL
 						    printk("\t\tsegment [%016llx, %016llx)"
-						    " size %5s\n", (u_longlong_t)start,
+						    " size %016llx\n", (u_longlong_t)start,
 						    (u_longlong_t)end, segsize);
                         #endif
 						if (error)
