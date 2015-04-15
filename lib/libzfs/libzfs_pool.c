@@ -1439,8 +1439,8 @@ int zpool_t1_t2(zpool_handle_t *zhp,const char *filename, const int filesize, co
  char msg[1024];
 
  (void) strlcpy(zc.zc_name, zhp->zpool_name, sizeof (zc.zc_name));
- zc.zc_nvlist_src_size = filesize;
- zc.zc_nvlist_src = (uintptr_t)filename;
+// zc.zc_nvlist_src_size = filesize;
+ //zc.zc_nvlist_src = (uintptr_t)filename;
  zc.zc_history = (uint64_t)(uintptr_t)log_str;
 
  if (zfs_ioctl(hdl, ZFS_IOC_POOL_MOVET1T2, &zc) != 0) {
