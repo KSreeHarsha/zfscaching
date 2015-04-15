@@ -1560,11 +1560,14 @@ sync_object(objset_t *os, uint64_t object, int *print_header)
 				dn = DB_DNODE((dmu_buf_impl_t *)db);
 		}
 		object_type=dn->dn_type;
+		uint64_t object_size = (dn->dn_maxblkid + 1) * dn->dn_datablksz;
+
 		if (db != NULL)
 				dmu_buf_rele(db, FTAG);
 		if (object_type==19){
 			int fsize=dump_znode(os,object,bonus,bsize);
 #ifdef _KERNEL
+			printk("Object size is : %d\n",object_size);
 			printk("File size is : %d\n",fsize);
 #endif
 			dmu_read_write(os, object,0,2);
