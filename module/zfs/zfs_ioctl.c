@@ -1518,12 +1518,14 @@ dump_znode(objset_t *os, uint64_t object, void *data, size_t size)
 		if ((error = sa_setup(os, sa_attrs, zfs_attr_table,
 		    ZPL_END, &sa_attr_table)) != 0) {
 #ifdef _KERNEL
-			printk("%d %d %d",sa_attrs,sa_attr_table[0],sa_attr_table[1]);
 			printk("sa_setup failed errno %d, can't "
 			    "display znode contents\n", error);
 #endif
 			return;
 		}
+#ifdef _KERNEL
+	printk("%d %d %d",sa_attrs,sa_attr_table[0],sa_attr_table[1]);
+#endif
 
 	SA_ADD_BULK_ATTR(bulk, idx, sa_attr_table[ZPL_SIZE], NULL,
 	    &fsize, 8);
