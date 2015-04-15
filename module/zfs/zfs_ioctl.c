@@ -1515,7 +1515,7 @@ dump_znode(objset_t *os, uint64_t object, void *data, size_t size)
 			VERIFY(zap_lookup(os, MASTER_NODE_OBJ, ZFS_SA_ATTRS,
 			    8, 1, &sa_attrs) == 0);
 		}
-		if ((error = sa_setup(os, 8, zfs_attr_table,
+		if ((error = sa_setup(os, sa_attrs, zfs_attr_table,
 		    ZPL_END, &sa_attr_table)) != 0) {
 #ifdef _KERNEL
 			printk("sa_setup failed errno %d, can't "
@@ -1524,7 +1524,7 @@ dump_znode(objset_t *os, uint64_t object, void *data, size_t size)
 			return;
 		}
 #ifdef _KERNEL
-	printk("sa_attrs %d %d %d %d\n",sa_attrs,sa_attr_table[0],sa_attr_table[1],sa_attr_table[7]);
+	printk("sa_attrs %d %d %d %llu\n",sa_attrs,sa_attr_table[0],sa_attr_table[1],(u_longlong_t)sa_attr_table[ZPL_SIZE]);
 #endif
 
 	SA_ADD_BULK_ATTR(bulk, idx, sa_attr_table[ZPL_SIZE], NULL,
