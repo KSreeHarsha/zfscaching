@@ -1189,10 +1189,6 @@ zpool_do_move_t1_t2(int argc, char **argv)
  (void) fprintf(stderr, gettext("missing pool argument\n"));
  usage(B_FALSE);
  }
- if (argc > 1) {
- (void) fprintf(stderr, gettext("too many arguments\n"));
- usage(B_FALSE);
- }
 
  pool = argv[0];
 
