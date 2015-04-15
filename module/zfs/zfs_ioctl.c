@@ -1562,16 +1562,47 @@ sync_object(objset_t *os, uint64_t object, int *print_header)
 		object_type=dn->dn_type;
 		uint64_t object_size = (dn->dn_maxblkid + 1) * dn->dn_datablksz;
 
-		if (db != NULL)
-				dmu_buf_rele(db, FTAG);
+
 		if (object_type==19){
 			int fsize=dump_znode(os,object,bonus,bsize);
+			uint64_t start = 0;
+					uint64_t end;
+					uint64_t blkfill = 1;
+					int minlvl = 0;
+
+					if (dn->dn_type == DMU_OT_DNODE) {
+						minlvl = 0;
+						blkfill = DNODES_PER_BLOCK;
+					}
+
+					for (;;) {
+						char segsize[32];
+						error = dnode_next_offset(dn,
+						    0, &start, minlvl, blkfill, 0);
+						if (error)
+							break;
+						end = start;
+						error = dnode_next_offset(dn,
+						    DNODE_FIND_HOLE, &end, minlvl, blkfill, 0);
+						zdb_nicenum(end - start, segsize);
+                        #ifdef _KERNEL
+						    printk("\t\tsegment [%016llx, %016llx)"
+						    " size %5s\n", (u_longlong_t)start,
+						    (u_longlong_t)end, segsize);
+                        #endif
+						if (error)
+							break;
+						start = end;
+					}
 #ifdef _KERNEL
 			printk("Object size is : %d\n",object_size);
 			printk("File size is : %d\n",fsize);
 #endif
-			dmu_read_write(os, object,0,object_size);
+			//dmu_read_write(os, object,0,object_size);
 		}
+
+		if (db != NULL)
+					dmu_buf_rele(db, FTAG);
 
 }
 static void
