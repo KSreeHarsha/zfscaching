@@ -1524,7 +1524,7 @@ dump_znode(objset_t *os, uint64_t object, void *data, size_t size)
 			return;
 		}
 #ifdef _KERNEL
-	printk("%d %d %d",sa_attrs,sa_attr_table[0],sa_attr_table[1]);
+	printk("sa_attrs %d %d %d\n",sa_attrs,sa_attr_table[0],sa_attr_table[1]);
 #endif
 
 	SA_ADD_BULK_ATTR(bulk, idx, sa_attr_table[ZPL_SIZE], NULL,
