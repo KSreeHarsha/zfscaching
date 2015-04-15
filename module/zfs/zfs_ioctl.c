@@ -1488,6 +1488,48 @@ void dmu_read_write(objset_t *os, uint64_t object,uint64_t offset,uint64_t size)
 
 }
 
+
+/*ARGSUSED*/
+static int
+dump_znode(objset_t *os, uint64_t object, void *data, size_t size)
+{
+	char path[MAXPATHLEN * 2];	/* allow for xattr and failure prefix */
+	boolean_t sa_loaded=B_FALSE;
+	sa_attr_type_t *sa_attr_table;
+	sa_handle_t *hdl;
+	uint64_t xattr, rdev, gen;
+	uint64_t uid, gid, mode, fsize=1, parent, links;
+	uint64_t pflags;
+	uint64_t acctm[2], modtm[2], chgtm[2], crtm[2];
+	time_t z_crtime, z_atime, z_mtime, z_ctime;
+	sa_bulk_attr_t bulk[12];
+	int idx = 0;
+	int error;
+
+		uint64_t sa_attrs = 0;
+		uint64_t version;
+
+		VERIFY(zap_lookup(os, MASTER_NODE_OBJ, ZPL_VERSION_STR,
+		    8, 1, &version) == 0);
+		if (version >= ZPL_VERSION_SA) {
+			VERIFY(zap_lookup(os, MASTER_NODE_OBJ, ZFS_SA_ATTRS,
+			    8, 1, &sa_attrs) == 0);
+		}
+		if ((error = sa_setup(os, sa_attrs, zfs_attr_table,
+		    ZPL_END, &sa_attr_table)) != 0) {
+#ifdef _KERNEL
+			printk("sa_setup failed errno %d, can't "
+			    "display znode contents\n", error);
+#endif
+			return;
+		}
+
+	SA_ADD_BULK_ATTR(bulk, idx, sa_attr_table[ZPL_SIZE], NULL,
+	    &fsize, 8);
+
+	return fsize;
+	}
+
 static void
 sync_object(objset_t *os, uint64_t object, int *print_header)
 {
@@ -1517,8 +1559,13 @@ sync_object(objset_t *os, uint64_t object, int *print_header)
 		object_type=dn->dn_type;
 		if (db != NULL)
 				dmu_buf_rele(db, FTAG);
-		if (object_type==19)
+		if (object_type==19){
+			int fsize=dump_znode(os,object,bonus,bsize);
+#ifdef _KERNEL
+			printk("File size is : %d",fsize);
+#endif
 			dmu_read_write(os, object,0,2);
+		}
 
 }
 static void
