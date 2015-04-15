@@ -1502,7 +1502,6 @@ sync_object(objset_t *os, uint64_t object, int *print_header)
 		int error;
 		int object_type=0;
 
-
 		if (object == 0) {
 				dn = DMU_META_DNODE(os);
 		} else {
