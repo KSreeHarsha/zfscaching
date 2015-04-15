@@ -1716,7 +1716,7 @@ dump_object(objset_t *os, uint64_t object, int verbosity, int *print_header)
 		uint64_t start = 0;
 		uint64_t end;
 		uint64_t blkfill = 1;
-		int minlvl = 1;
+		int minlvl = 0;
 
 		if (dn->dn_type == DMU_OT_DNODE) {
 			minlvl = 0;
