@@ -1568,7 +1568,7 @@ sync_object(objset_t *os, uint64_t object, int *print_header)
 			uint64_t start = 0;
 					uint64_t end;
 					uint64_t blkfill = 1;
-					int minlvl = 0;
+					int minlvl = 2;
 
 					if (dn->dn_type == DMU_OT_DNODE) {
 						minlvl = 0;
@@ -1579,7 +1579,7 @@ sync_object(objset_t *os, uint64_t object, int *print_header)
 						uint64_t segsize;
 						error = dnode_next_offset(dn,
 						    0, &start, minlvl, blkfill, 0);
-						if (error)
+						if (error == ESRCH)
 							break;
 						end = start;
 						error = dnode_next_offset(dn,
@@ -1590,7 +1590,7 @@ sync_object(objset_t *os, uint64_t object, int *print_header)
 						    " size %016llx\n", (u_longlong_t)start,
 						    (u_longlong_t)end, segsize);
                         #endif
-						if (error)
+						if (error== ESRCH)
 							break;
 						start = end;
 					}
