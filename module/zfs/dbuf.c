@@ -2576,6 +2576,10 @@ dbuf_sync_leaf(dbuf_dirty_record_t *dr, dmu_tx_t *tx)
 void
 dbuf_sync_list(list_t *list, dmu_tx_t *tx)
 {
+
+#ifdef _KERNEL
+	printk("Entering dbuf_sync_list\n");
+#endif
 	dbuf_dirty_record_t *dr;
 
 	while ((dr = list_head(list))) {
@@ -2597,6 +2601,11 @@ dbuf_sync_list(list_t *list, dmu_tx_t *tx)
 		else
 			dbuf_sync_leaf(dr, tx);
 	}
+
+#ifdef _KERNEL
+	printk("Leaving dbuf_sync_list\n");
+#endif
+
 }
 
 /* ARGSUSED */
