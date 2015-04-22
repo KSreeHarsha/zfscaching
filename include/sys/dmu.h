@@ -589,6 +589,8 @@ int dmu_free_long_range(objset_t *os, uint64_t object, uint64_t offset,
 	uint64_t size);
 int dmu_free_long_object(objset_t *os, uint64_t object);
 
+int dmu_move_long_object(objset_t *os, uint64_t object)
+
 /*
  * Convenience functions.
  *
