@@ -1705,8 +1705,8 @@ top:
 
 		vd = mg->mg_vd;
 #ifdef _KERNEL
-		printk("Z TIER FLAG : %d",flags & ZIO_FLAG_TIER1);
-		printk("Vdev choosen : %d", vd->vdev_id);
+		printk("Z TIER FLAG : %d\n",flags & ZIO_FLAG_TIER1);
+		printk("Vdev choosen : %d\n", vd->vdev_id);
 #endif
 
 		if(vd->vdev_id==0 && flags & ZIO_FLAG_TIER1 )

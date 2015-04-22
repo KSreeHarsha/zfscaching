@@ -2396,7 +2396,7 @@ dbuf_sync_indirect(dbuf_dirty_record_t *dr, dmu_tx_t *tx)
 
 	ASSERT(db->db_level > 0);
 	DBUF_VERIFY(db);
-
+	
 	/* Read the block if it hasn't been read yet. */
 	if (db->db_buf == NULL) {
 		mutex_exit(&db->db_mtx);
@@ -2412,7 +2412,7 @@ dbuf_sync_indirect(dbuf_dirty_record_t *dr, dmu_tx_t *tx)
 	ASSERT3U(db->db.db_size, ==, 1<<dn->dn_phys->dn_indblkshift);
 	dbuf_check_blkptr(dn, db);
 	DB_DNODE_EXIT(db);
-
+	
 	/* Provide the pending dirty record to child dbufs */
 	db->db_data_pending = dr;
 
@@ -2420,6 +2420,7 @@ dbuf_sync_indirect(dbuf_dirty_record_t *dr, dmu_tx_t *tx)
 	dbuf_write(dr, db->db_buf, tx);
 
 	zio = dr->dr_zio;
+	zio->io_flags|=(zio->io_flags & ZIO_FLAG_TIER1);
 	mutex_enter(&dr->dt.di.dr_mtx);
 	dbuf_sync_list(&dr->dt.di.dr_children, tx);
 	ASSERT(list_head(&dr->dt.di.dr_children) == NULL);
@@ -2567,6 +2568,7 @@ dbuf_sync_leaf(dbuf_dirty_record_t *dr, dmu_tx_t *tx)
 		 * zio_nowait() invalidates the dbuf.
 		 */
 		DB_DNODE_EXIT(db);
+		dr->dr_zio->io_flags|=(dr->dr_zio->io_flags & ZIO_FLAG_TIER1);
 		zio_nowait(dr->dr_zio);
 	}
 }
