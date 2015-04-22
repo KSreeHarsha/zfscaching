@@ -1545,6 +1545,7 @@ sync_object(objset_t *os, uint64_t object, int *print_header)
 		char bonus_size[32];
 		char aux[50];
 		int error;
+		int moverr;
 		int object_type=0;
 
 		if (object == 0) {
@@ -1564,40 +1565,12 @@ sync_object(objset_t *os, uint64_t object, int *print_header)
 
 
 		if (object_type==19){
-			int fsize=dump_znode(os,object,bonus,bsize);
-			uint64_t start = 0;
-					uint64_t end;
-					uint64_t blkfill = 1;
-					int minlvl = 1;
-
-					if (dn->dn_type == DMU_OT_DNODE) {
-						minlvl = 0;
-						blkfill = DNODES_PER_BLOCK;
-					}
-
-					for (;;) {
-						uint64_t segsize;
-						error = dnode_next_offset(dn,
-						    0, &start, minlvl, blkfill, 0);
-						if (error)
-							break;
-						end = start;
-						error = dnode_next_offset(dn,
-						    DNODE_FIND_HOLE, &end, minlvl, blkfill, 0);
-						segsize=end - start;
-                        #ifdef _KERNEL
-						    printk("\t\tsegment [%016llx, %016llx)"
-						    " size %016llx\n", (u_longlong_t)start,
-						    (u_longlong_t)end, segsize);
-                        #endif
-						if (error)
-							break;
-						start = end;
-					}
-#ifdef _KERNEL
+			//int fsize=dump_znode(os,object,bonus,bsize);
+			moverr= dmu_move_long_object(os,object);
+			#ifdef _KERNEL
 			printk("Object size is : %d\n",object_size);
-			printk("File size is : %d\n",fsize);
-#endif
+			printk("Error while moving  : %d\n",moverr);
+			#endif
 			//dmu_read_write(os, object,0,object_size);
 		}
 

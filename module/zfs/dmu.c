@@ -666,6 +666,71 @@ dmu_free_long_range_impl(objset_t *os, dnode_t *dn, uint64_t offset,
 	return (0);
 }
 
+static int
+dmu_move_long_range_impl(objset_t *os, dnode_t *dn, uint64_t offset,
+    uint64_t length)
+{
+	uint64_t object_size = (dn->dn_maxblkid + 1) * dn->dn_datablksz;
+	int err;
+	int dread_err;
+	uint64_t size=0;
+
+	if (offset >= object_size)
+		return (0);
+
+	if (length == DMU_OBJECT_END || offset + length > object_size)
+		length = object_size - offset;
+
+	while (length != 0) {
+		uint64_t chunk_end, chunk_begin;
+		dmu_tx_t *tx;
+
+		chunk_end = chunk_begin = offset + length;
+
+		/* move chunk_begin backwards to the beginning of this chunk */
+		err = get_next_chunk(dn, &chunk_begin, offset);
+		if (err)
+			return (err);
+		ASSERT3U(chunk_begin, >=, offset);
+		ASSERT3U(chunk_begin, <=, chunk_end);
+		size=chunk_end - chunk_begin;
+		void *buf=kmem_alloc(size, KM_PUSHPAGE);
+		dread_err=dmu_read(os,object,offset,size,buf,DMU_READ_PREFETCH);
+		tx = dmu_tx_create(os);
+		dmu_tx_hold_write(tx, dn->dn_object,
+		    chunk_begin, size);
+		err = dmu_tx_assign(tx, TXG_WAIT);
+		if (err) {
+			dmu_tx_abort(tx);
+			return (err);
+		}
+		dmu_move(os,object, chunk_begin, size ,buf, tx);
+		//dnode_free_range(dn, chunk_begin, chunk_end - chunk_begin, tx);
+		dmu_tx_commit(tx);
+		kmem_free(buf,size);
+		length -= chunk_end - chunk_begin;
+	}
+	return (0);
+}
+
+
+int
+dmu_move_long_range(objset_t *os, uint64_t object,
+    uint64_t offset, uint64_t length)
+{
+	dnode_t *dn;
+	int err;
+
+	err = dnode_hold(os, object, FTAG, &dn);
+	if (err != 0)
+		return (err);
+	err = dmu_move_long_range_impl(os, dn, offset, length);
+
+	dnode_rele(dn, FTAG);
+	return (err);
+}
+
+
 int
 dmu_free_long_range(objset_t *os, uint64_t object,
     uint64_t offset, uint64_t length)
@@ -689,6 +754,17 @@ dmu_free_long_range(objset_t *os, uint64_t object,
 
 	dnode_rele(dn, FTAG);
 	return (err);
+}
+
+int
+dmu_move_long_object(objset_t *os, uint64_t object)
+{
+	int err;
+
+	err = dmu_move_long_range(os, object, 0, DMU_OBJECT_END);
+	if (err != 0)
+		return (err);
+
 }
 
 int
@@ -806,6 +882,49 @@ dmu_write(objset_t *os, uint64_t object, uint64_t offset, uint64_t size,
 		int tocpy;
 		int bufoff;
 		dmu_buf_t *db = dbp[i];
+
+		ASSERT(size > 0);
+
+		bufoff = offset - db->db_offset;
+		tocpy = (int)MIN(db->db_size - bufoff, size);
+
+		ASSERT(i == 0 || i == numbufs-1 || tocpy == db->db_size);
+
+		if (tocpy == db->db_size)
+			dmu_buf_will_fill(db, tx);
+		else
+			dmu_buf_will_dirty(db, tx);
+
+		(void) memcpy((char *)db->db_data + bufoff, buf, tocpy);
+
+		if (tocpy == db->db_size)
+			dmu_buf_fill_done(db, tx);
+
+		offset += tocpy;
+		size -= tocpy;
+		buf = (char *)buf + tocpy;
+	}
+	dmu_buf_rele_array(dbp, numbufs, FTAG);
+}
+
+void
+dmu_move(objset_t *os, uint64_t object, uint64_t offset, uint64_t size,
+    const void *buf, dmu_tx_t *tx,uint64_t flags)
+{
+	dmu_buf_t **dbp;
+	int numbufs, i;
+
+	if (size == 0)
+		return;
+
+	VERIFY(0 == dmu_buf_hold_array(os, object, offset, size,
+	    FALSE, FTAG, &numbufs, &dbp));
+
+	for (i = 0; i < numbufs; i++) {
+		int tocpy;
+		int bufoff;
+		dmu_buf_t *db = dbp[i];
+		db->tier=1;
 
 		ASSERT(size > 0);
 

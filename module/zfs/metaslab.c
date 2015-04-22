@@ -1705,6 +1705,9 @@ top:
 
 		vd = mg->mg_vd;
 
+		if(vd->vdev_id==0 && flags & ZIO_FLAG_TIER1 )
+			goto next;
+
 		/*
 		 * Don't allocate from faulted devices.
 		 */

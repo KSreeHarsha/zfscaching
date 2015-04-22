@@ -93,12 +93,16 @@ typedef enum override_states {
 	DR_OVERRIDDEN
 } override_states_t;
 
+
+
 typedef struct dbuf_dirty_record {
 	/* link on our parents dirty list */
 	list_node_t dr_dirty_node;
 
 	/* transaction group this data will sync in */
 	uint64_t dr_txg;
+
+
 
 	/* zio of outstanding write IO */
 	zio_t *dr_zio;
@@ -148,6 +152,8 @@ typedef struct dmu_buf_impl {
 
 	/* the publicly visible structure */
 	dmu_buf_t db;
+
+
 
 	/* the objset we belong to */
 	struct objset *db_objset;

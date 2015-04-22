@@ -273,11 +273,18 @@ void dmu_objset_byteswap(void *buf, size_t size);
 int dsl_dataset_rename_snapshot(const char *fsname,
     const char *oldsnapname, const char *newsnapname, boolean_t recursive);
 
+typedef enum tier_level {
+	TIER0,
+	TIER1
+} tier_level_t;
+
 typedef struct dmu_buf {
 	uint64_t db_object;		/* object that this buffer is part of */
 	uint64_t db_offset;		/* byte offset in this object */
 	uint64_t db_size;		/* size of buffer in bytes */
 	void *db_data;			/* data in buffer */
+	uint32_t tier;		    /* Vdev to write this dmu buffer*/
+
 } dmu_buf_t;
 
 typedef void dmu_buf_evict_func_t(struct dmu_buf *db, void *user_ptr);
@@ -594,6 +601,10 @@ int dmu_read(objset_t *os, uint64_t object, uint64_t offset, uint64_t size,
 	void *buf, uint32_t flags);
 void dmu_write(objset_t *os, uint64_t object, uint64_t offset, uint64_t size,
 	const void *buf, dmu_tx_t *tx);
+#define	DMU_MOVE_NO_TIER1	0 /* prefetch */
+#define	DMU_MOVE_TIER1	1 /* don't prefetch */
+void dmu_move(objset_t *os, uint64_t object, uint64_t offset, uint64_t size,
+	const void *buf, dmu_tx_t *tx,  uint32_t flags);
 void dmu_prealloc(objset_t *os, uint64_t object, uint64_t offset, uint64_t size,
 	dmu_tx_t *tx);
 #ifdef _KERNEL

@@ -1168,6 +1168,8 @@ dbuf_dirty(dmu_buf_impl_t *db, dmu_tx_t *tx)
 				arc_buf_thaw(db->db_buf);
 		}
 		mutex_exit(&db->db_mtx);
+		if(db->db.tier==1)
+			dr->dr_zio->io_flags |=(dr->dr_zio->io_flags & ZIO_FLAG_TIER1);
 		return (dr);
 	}
 
@@ -1284,6 +1286,8 @@ dbuf_dirty(dmu_buf_impl_t *db, dmu_tx_t *tx)
 		list_insert_tail(&dn->dn_dirty_records[txgoff], dr);
 		mutex_exit(&dn->dn_mtx);
 		dnode_setdirty(dn, tx);
+		if(db->db.tier==1)
+			    dr->dr_zio->io_flags |=(dr->dr_zio->io_flags & ZIO_FLAG_TIER1);;
 		DB_DNODE_EXIT(db);
 		return (dr);
 	} else if (do_free_accounting) {
@@ -1360,6 +1364,9 @@ dbuf_dirty(dmu_buf_impl_t *db, dmu_tx_t *tx)
 	}
 
 	dnode_setdirty(dn, tx);
+	if(db->db.tier==1)
+			dr->dr_zio->io_flags |=(dr->dr_zio->io_flags & ZIO_FLAG_TIER1);
+
 	DB_DNODE_EXIT(db);
 	return (dr);
 }
