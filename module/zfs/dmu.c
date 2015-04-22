@@ -674,6 +674,8 @@ dmu_move_long_range_impl(objset_t *os, dnode_t *dn,uint64_t object, uint64_t off
 	int err;
 	int dread_err;
 	uint64_t size=0;
+	uint64_t flags=0;
+
 
 	if (offset >= object_size)
 		return (0);
@@ -704,7 +706,8 @@ dmu_move_long_range_impl(objset_t *os, dnode_t *dn,uint64_t object, uint64_t off
 			dmu_tx_abort(tx);
 			return (err);
 		}
-		dmu_move(os,object, chunk_begin, size ,buf, tx, DMU_MOVE_TIER1);
+		flags=DMU_MOVE_TIER1;
+		dmu_move(os,object, chunk_begin, size ,buf, tx, flags);
 		//dnode_free_range(dn, chunk_begin, chunk_end - chunk_begin, tx);
 		dmu_tx_commit(tx);
 		kmem_free(buf,size);
