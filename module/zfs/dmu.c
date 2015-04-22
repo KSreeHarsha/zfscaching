@@ -704,7 +704,7 @@ dmu_move_long_range_impl(objset_t *os, dnode_t *dn,uint64_t object, uint64_t off
 			dmu_tx_abort(tx);
 			return (err);
 		}
-		dmu_move(os,object, chunk_begin, size ,buf, tx);
+		dmu_move(os,object, chunk_begin, size ,buf, tx, DMU_MOVE_TIER1);
 		//dnode_free_range(dn, chunk_begin, chunk_end - chunk_begin, tx);
 		dmu_tx_commit(tx);
 		kmem_free(buf,size);
@@ -764,7 +764,6 @@ dmu_move_long_object(objset_t *os, uint64_t object)
 	err = dmu_move_long_range(os, object, 0, DMU_OBJECT_END);
 	if (err != 0)
 		return (err);
-
 }
 
 int
@@ -924,7 +923,7 @@ dmu_move(objset_t *os, uint64_t object, uint64_t offset, uint64_t size,
 		int tocpy;
 		int bufoff;
 		dmu_buf_t *db = dbp[i];
-		db->tier=1;
+		db->tier=flags;
 
 		ASSERT(size > 0);
 
