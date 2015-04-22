@@ -1704,6 +1704,10 @@ top:
 		ASSERT(mg->mg_activation_count == 1);
 
 		vd = mg->mg_vd;
+#ifdef _KERNEL
+		printk("Z TIER FLAG : %d",flags & ZIO_FLAG_TIER1);
+		printk("Vdev choosen : %d", vd->vdev_id);
+#endif
 
 		if(vd->vdev_id==0 && flags & ZIO_FLAG_TIER1 )
 			goto next;
