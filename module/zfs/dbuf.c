@@ -1479,8 +1479,7 @@ dbuf_will_dirty(dmu_buf_impl_t *db, dmu_tx_t *tx)
 	if (RW_WRITE_HELD(&DB_DNODE(db)->dn_struct_rwlock))
 		rf |= DB_RF_HAVESTRUCT;
 	DB_DNODE_EXIT(db);
-	if(db_fake->tier==1)
-		db->tier=1;
+
 #ifdef _KERNEL
 	printk("Tier flag in dbuf_will_dirty: %d",db->tier);
 #endif
