@@ -1709,8 +1709,7 @@ top:
 		printk("Vdev choosen : %d\n", vd->vdev_id);
 #endif
 
-		if(vd->vdev_id==0 && flags & ZIO_FLAG_TIER1 )
-			goto next;
+//		if(vd->vdev_id==0 && flags & ZIO_FLAG_TIER1 )
 
 		/*
 		 * Don't allocate from faulted devices.
