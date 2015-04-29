@@ -234,7 +234,7 @@ typedef struct dmu_buf_impl {
 
 	uint8_t db_immediate_evict;
 	uint8_t db_freed_in_flight;
-
+	uint8_t tier;
 	uint8_t db_dirtycnt;
 } dmu_buf_impl_t;
 
