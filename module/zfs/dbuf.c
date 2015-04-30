@@ -2427,7 +2427,7 @@ dbuf_sync_indirect(dbuf_dirty_record_t *dr, dmu_tx_t *tx)
 
 	zio = dr->dr_zio;
 #ifdef _KERNEL
-	printk("ZIO Flags:%d",zio->io_flags);
+	printk("ZIO Flag in sync indirect:%d",zio->io_flags);
 #endif
 	zio->io_flags|= ZIO_FLAG_TIER1;
 	mutex_enter(&dr->dt.di.dr_mtx);
@@ -2578,7 +2578,7 @@ dbuf_sync_leaf(dbuf_dirty_record_t *dr, dmu_tx_t *tx)
 		 */
 		DB_DNODE_EXIT(db);
 #ifdef _KERNEL
-	printk("ZIO Flags:%d",dr->dr_zio->io_flags);
+	printk("ZIO Flag in sync leaf:%d \n",dr->dr_zio->io_flags);
 #endif
 		dr->dr_zio->io_flags|=ZIO_FLAG_TIER1;
 		zio_nowait(dr->dr_zio);
