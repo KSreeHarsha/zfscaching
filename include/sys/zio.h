@@ -179,7 +179,7 @@ enum zio_flag {
 	ZIO_FLAG_PROBE		= 1 << 14,
 	ZIO_FLAG_TRYHARD	= 1 << 15,
 	ZIO_FLAG_OPTIONAL	= 1 << 16,
-	ZIO_FLAG_TIER1          = 1 << 17
+	ZIO_FLAG_TIER1          = 1 << 17,
 #define	ZIO_FLAG_VDEV_INHERIT	(ZIO_FLAG_DONT_QUEUE - 1)
 
 	/*
