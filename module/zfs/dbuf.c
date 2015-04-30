@@ -2430,6 +2430,9 @@ dbuf_sync_indirect(dbuf_dirty_record_t *dr, dmu_tx_t *tx)
 	printk("ZIO Flag in sync indirect:%d",zio->io_flags);
 #endif
 	zio->io_flags|= ZIO_FLAG_TIER1;
+#ifdef _KERNEL
+	printk("ZIO Flag in sync indirect:%d",zio->io_flags);
+#endif
 	mutex_enter(&dr->dt.di.dr_mtx);
 	dbuf_sync_list(&dr->dt.di.dr_children, tx);
 	ASSERT(list_head(&dr->dt.di.dr_children) == NULL);
@@ -2581,6 +2584,9 @@ dbuf_sync_leaf(dbuf_dirty_record_t *dr, dmu_tx_t *tx)
 	printk("ZIO Flag in sync leaf:%d \n",dr->dr_zio->io_flags);
 #endif
 		dr->dr_zio->io_flags|=ZIO_FLAG_TIER1;
+#ifdef _KERNEL
+	printk("ZIO Flag in sync leaf:%d \n",dr->dr_zio->io_flags);
+#endif
 		zio_nowait(dr->dr_zio);
 	}
 }
