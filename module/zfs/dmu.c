@@ -939,7 +939,7 @@ dmu_move(objset_t *os, uint64_t object, uint64_t offset, uint64_t size,
 		if (tocpy == db->db_size)
 			dmu_buf_will_fill(db, tx);
 		else
-			dmu_buf_will_dirty(db, tx);
+			dbuf_will_dirty_tier(db, tx);
 
 		(void) memcpy((char *)db->db_data + bufoff, buf, tocpy);
 

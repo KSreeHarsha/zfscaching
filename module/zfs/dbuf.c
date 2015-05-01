@@ -1488,6 +1488,28 @@ dbuf_will_dirty(dmu_buf_impl_t *db, dmu_tx_t *tx)
 	(void) dbuf_dirty(db, tx);
 }
 
+#pragma weak dmu_buf_will_dirty_tier = dbuf_will_dirty_tier
+void
+dbuf_will_dirty_tier(dmu_buf_impl_t *db, dmu_tx_t *tx)
+{
+	int rf = DB_RF_MUST_SUCCEED | DB_RF_NOPREFETCH;
+
+	ASSERT(tx->tx_txg != 0);
+	ASSERT(!refcount_is_zero(&db->db_holds));
+
+	DB_DNODE_ENTER(db);
+	if (RW_WRITE_HELD(&DB_DNODE(db)->dn_struct_rwlock))
+		rf |= DB_RF_HAVESTRUCT;
+	DB_DNODE_EXIT(db);
+	db->db.tier=1;
+#ifdef _KERNEL
+	printk("Tier flag in dbuf_will_dirty: %d\n",db->db.tier);
+#endif
+	(void) dbuf_read(db, NULL, rf);
+	(void) dbuf_dirty(db, tx);
+}
+
+
 void
 dmu_buf_will_not_fill(dmu_buf_t *db_fake, dmu_tx_t *tx)
 {
