@@ -1413,11 +1413,6 @@ zio_nowait(zio_t *zio)
 		zio_add_child(spa->spa_async_zio_root, zio);
 	}
 
-#ifdef _KERNEL
-		printk("flags in zio nowait: %d\n",zio->io_flags );
-#endif
-
-
 	__zio_execute(zio);
 }
 

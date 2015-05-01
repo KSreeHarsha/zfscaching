@@ -1479,8 +1479,8 @@ dbuf_will_dirty(dmu_buf_impl_t *db, dmu_tx_t *tx)
 	if (RW_WRITE_HELD(&DB_DNODE(db)->dn_struct_rwlock))
 		rf |= DB_RF_HAVESTRUCT;
 	DB_DNODE_EXIT(db);
-	db->tier=1;
-	db->db.tier=1;
+	//db->tier=1;
+	//db->db.tier=1;
 #ifdef _KERNEL
 	printk("Tier flag in dbuf_will_dirty: %d",db->db.tier);
 #endif
@@ -2426,13 +2426,7 @@ dbuf_sync_indirect(dbuf_dirty_record_t *dr, dmu_tx_t *tx)
 	dbuf_write(dr, db->db_buf, tx);
 
 	zio = dr->dr_zio;
-#ifdef _KERNEL
-	printk("ZIO Flag in sync indirect:%d",zio->io_flags);
-#endif
 	zio->io_flags|= ZIO_FLAG_TIER1;
-#ifdef _KERNEL
-	printk("ZIO Flag in sync indirect:%d",zio->io_flags);
-#endif
 	mutex_enter(&dr->dt.di.dr_mtx);
 	dbuf_sync_list(&dr->dt.di.dr_children, tx);
 	ASSERT(list_head(&dr->dt.di.dr_children) == NULL);
@@ -2580,13 +2574,9 @@ dbuf_sync_leaf(dbuf_dirty_record_t *dr, dmu_tx_t *tx)
 		 * zio_nowait() invalidates the dbuf.
 		 */
 		DB_DNODE_EXIT(db);
-#ifdef _KERNEL
-	printk("ZIO Flag in sync leaf:%d \n",dr->dr_zio->io_flags);
-#endif
+
 		dr->dr_zio->io_flags|=ZIO_FLAG_TIER1;
-#ifdef _KERNEL
-	printk("ZIO Flag in sync leaf:%d \n",dr->dr_zio->io_flags);
-#endif
+
 		zio_nowait(dr->dr_zio);
 	}
 }
