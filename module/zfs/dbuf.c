@@ -1480,9 +1480,9 @@ dbuf_will_dirty(dmu_buf_impl_t *db, dmu_tx_t *tx)
 		rf |= DB_RF_HAVESTRUCT;
 	DB_DNODE_EXIT(db);
 	//db->tier=1;
-	db->db.tier=1;
+	//db->db.tier=1;
 #ifdef _KERNEL
-	printk("Tier flag in dbuf_will_dirty: %d",db->db.tier);
+	printk("Tier flag in dbuf_will_dirty: %d\n",db->db.tier);
 #endif
 	(void) dbuf_read(db, NULL, rf);
 	(void) dbuf_dirty(db, tx);
