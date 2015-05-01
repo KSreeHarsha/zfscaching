@@ -1414,7 +1414,7 @@ zio_nowait(zio_t *zio)
 	}
 
 #ifdef _KERNEL
-		printk("flags in zio nowait: %d\n",flags );
+		printk("flags in zio nowait: %d\n",zio->io_flags );
 #endif
 
 
