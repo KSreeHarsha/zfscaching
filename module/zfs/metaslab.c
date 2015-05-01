@@ -1706,6 +1706,7 @@ top:
 		vd = mg->mg_vd;
 #ifdef _KERNEL
 		printk("Z TIER FLAG : %d\n",flags & ZIO_FLAG_TIER1);
+		printk("metaslab all flags: %d\n",flags );
 		printk("Vdev choosen : %d\n", vd->vdev_id);
 #endif
 
