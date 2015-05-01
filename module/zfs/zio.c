@@ -2416,6 +2416,7 @@ zio_dva_allocate(zio_t *zio)
 	flags |= (zio->io_flags & ZIO_FLAG_GANG_CHILD) ?
 	    METASLAB_GANG_CHILD : 0;
 	flags |= (zio->io_flags & ZIO_FLAG_FASTWRITE) ? METASLAB_FASTWRITE : 0;
+	flags |= (zio->io_flags & ZIO_FLAG_TIER1) ? ZIO_FLAG_TIER1 : 0;
 	error = metaslab_alloc(spa, mc, zio->io_size, bp,
 	    zio->io_prop.zp_copies, zio->io_txg, NULL, flags);
 
