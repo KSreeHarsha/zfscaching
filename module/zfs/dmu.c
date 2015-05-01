@@ -927,7 +927,7 @@ dmu_move(objset_t *os, uint64_t object, uint64_t offset, uint64_t size,
 		int bufoff;
 		dmu_buf_t *db = dbp[i];
 
-		*((dmu_buf_impl_t *)db)->db.tier=flags;
+		((dmu_buf_impl_t *)db)->db.tier=flags;
 
 		ASSERT(size > 0);
 
