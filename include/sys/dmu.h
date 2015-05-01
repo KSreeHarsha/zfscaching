@@ -518,7 +518,7 @@ struct blkptr *dmu_buf_get_blkptr(dmu_buf_t *db);
  * (ie. you've called dmu_tx_hold_object(tx, db->db_object)).
  */
 void dmu_buf_will_dirty(dmu_buf_t *db, dmu_tx_t *tx);
-
+void dmu_buf_will_dirty_tier(dmu_buf_t *db, dmu_tx_t *tx);
 /*
  * Tells if the given dbuf is freeable.
  */
