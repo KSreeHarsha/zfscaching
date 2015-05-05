@@ -1492,6 +1492,10 @@ dbuf_will_dirty(dmu_buf_impl_t *db, dmu_tx_t *tx)
 void
 dbuf_will_dirty_tier(dmu_buf_impl_t *db, dmu_tx_t *tx)
 {
+
+#ifdef _KERNEL
+	printk("Entering dbuf_will_dirty\n");
+#endif
 	int rf = DB_RF_MUST_SUCCEED | DB_RF_NOPREFETCH;
 
 	ASSERT(tx->tx_txg != 0);
@@ -1507,6 +1511,9 @@ dbuf_will_dirty_tier(dmu_buf_impl_t *db, dmu_tx_t *tx)
 #endif
 	(void) dbuf_read(db, NULL, rf);
 	(void) dbuf_dirty(db, tx);
+#ifdef _KERNEL
+	printk("Leaving dbuf_will_dirty\n");
+#endif
 }
 
 
