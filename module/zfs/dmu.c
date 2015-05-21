@@ -935,6 +935,9 @@ dmu_move(objset_t *os, uint64_t object, uint64_t offset, uint64_t size,
 		ASSERT(i == 0 || i == numbufs-1 || tocpy == db->db_size);
 
 		db->tier=1;
+#ifdef _KERNEL
+		printk("Tier flag has been set in dmu move\n");
+#endif
 
 		if (tocpy == db->db_size)
 			dmu_buf_will_fill(db, tx);
