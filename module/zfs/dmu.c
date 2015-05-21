@@ -723,7 +723,9 @@ dmu_move_long_range(objset_t *os, uint64_t object,
 {
 	dnode_t *dn;
 	int err;
-
+#ifdef _KERNEL
+	printk("Entering dmu_move_long_range\n");
+#endif
 	err = dnode_hold(os, object, FTAG, &dn);
 	if (err != 0)
 		return (err);
