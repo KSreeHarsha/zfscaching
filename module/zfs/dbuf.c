@@ -1471,7 +1471,7 @@ void
 dbuf_will_dirty(dmu_buf_impl_t *db, dmu_tx_t *tx)
 {
 	int rf = DB_RF_MUST_SUCCEED | DB_RF_NOPREFETCH;
-
+	dmu_buf_t* db_fake=(dmu_buf_t *)db;
 	ASSERT(tx->tx_txg != 0);
 	ASSERT(!refcount_is_zero(&db->db_holds));
 
@@ -1484,7 +1484,7 @@ dbuf_will_dirty(dmu_buf_impl_t *db, dmu_tx_t *tx)
 #ifdef _KERNEL
 	printk("Tier flag in dbuf_will_dirty: %d\n",db->db.tier);
 	printk("Tier flag in dbuf_will_dirty: %d\n",(*db).tier);
-	printk("Tier flag in dbuf_will_dirty: %d\n",db->tier);
+	printk("db fake Tier flag in dbuf_will_dirty: %d\n",db_fake->tier);
 #endif
 	(void) dbuf_read(db, NULL, rf);
 	(void) dbuf_dirty(db, tx);
