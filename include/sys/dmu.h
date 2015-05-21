@@ -283,7 +283,7 @@ typedef struct dmu_buf {
 	uint64_t db_offset;		/* byte offset in this object */
 	uint64_t db_size;		/* size of buffer in bytes */
 	void *db_data;			/* data in buffer */
-	uint32_t tier;		    /* Vdev to write this dmu buffer*/
+	uint32_t tier;		        /* Vdev to write this dmu buffer*/
 
 } dmu_buf_t;
 

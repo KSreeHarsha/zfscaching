@@ -1533,6 +1533,9 @@ void
 dmu_buf_will_fill(dmu_buf_t *db_fake, dmu_tx_t *tx)
 {
 	dmu_buf_impl_t *db = (dmu_buf_impl_t *)db_fake;
+#ifdef _KERNEL
+	printk("Tier flag in dmu_buf_will_fill: %d\n",db_fake->tier);
+#endif
 	if(db_fake->tier==1)
 		db->tier=1;
 	ASSERT(db->db_blkid != DMU_BONUS_BLKID);
