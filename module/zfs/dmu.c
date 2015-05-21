@@ -892,6 +892,9 @@ dmu_write(objset_t *os, uint64_t object, uint64_t offset, uint64_t size,
 
 		ASSERT(i == 0 || i == numbufs-1 || tocpy == db->db_size);
 
+		db->tier=1;
+
+
 		if (tocpy == db->db_size)
 			dmu_buf_will_fill(db, tx);
 		else
