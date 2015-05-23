@@ -1162,7 +1162,7 @@ zpool_do_move_t1_t2(int argc, char **argv)
 {
  boolean_t force = B_FALSE;
  int c;
- char *pool, *filename,*filesize;
+ char *pool;
  int fsize;
 
  zpool_handle_t *zhp;
@@ -1191,25 +1191,6 @@ zpool_do_move_t1_t2(int argc, char **argv)
  }
 
  pool = argv[0];
-
- if (argc < 2) {
- 		(void) fprintf(stderr,
- 		    gettext("missing filename argument\n"));
- 		usage(B_FALSE);
- 	}
-
- 	filename = argv[1];
-
- 	if (argc < 3) {
- 			(void) fprintf(stderr,
- 			    gettext("missing filesize argument\n"));
- 			usage(B_FALSE);
- 		filesize = argv[2];
- 		fsize=atoi(filesize);
- 		argc -= 2;
- 		argv += 2;
- 	}
-
 
  if ((zhp = zpool_open_canfail(g_zfs, pool)) == NULL) {
  return (1);
