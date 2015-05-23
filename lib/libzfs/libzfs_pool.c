@@ -1430,7 +1430,7 @@ zpool_add(zpool_handle_t *zhp, nvlist_t *nvroot)
 	return (ret);
 }
 
-int zpool_t1_t2(zpool_handle_t *zhp,const char *filename, const int filesize, const char *log_str)
+int zpool_t1_t2(zpool_handle_t *zhp, const char *log_str)
 {
 
  zfs_cmd_t zc = {"\0"};
