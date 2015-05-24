@@ -243,7 +243,7 @@ extern int zpool_add(zpool_handle_t *, nvlist_t *);
  */
 
 
-extern int zpool_t1_t2(zpool_handle_t *, const char *,const int,const char *);
+extern int zpool_t1_t2(zpool_handle_t *, const char *);
 extern int zpool_t2_t1(zpool_handle_t *, const char *);
 
 typedef struct splitflags {
