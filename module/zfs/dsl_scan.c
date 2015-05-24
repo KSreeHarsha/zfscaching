@@ -1563,7 +1563,11 @@ dsl_scan_sync(dsl_pool_t *dp, dmu_tx_t *tx)
 	zfs_dbgmsg("visited %llu blocks in %llums",
 	    (longlong_t)scn->scn_visited_this_txg,
 	    (longlong_t)NSEC2MSEC(gethrtime() - scn->scn_sync_start_time));
-
+#ifdef _KERNEL
+	printk("visited %llu blocks in %llums",
+		    (longlong_t)scn->scn_visited_this_txg,
+		    (longlong_t)NSEC2MSEC(gethrtime() - scn->scn_sync_start_time));
+#endif
 	if (!scn->scn_pausing) {
 		scn->scn_done_txg = tx->tx_txg + 1;
 		zfs_dbgmsg("txg %llu traversal complete, waiting till txg %llu",
