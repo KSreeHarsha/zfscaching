@@ -701,7 +701,7 @@ dmu_move_long_range_impl(objset_t *os, dnode_t *dn,uint64_t object, uint64_t off
 		tx = dmu_tx_create(os);
 		dmu_tx_hold_write(tx, dn->dn_object,
 		    chunk_begin, size);
-		err = dmu_tx_assign(tx, TXG_WAIT);
+		err = dmu_tx_assign(tx, TXG_NOWAIT);
 		if (err) {
 			dmu_tx_abort(tx);
 			return (err);
