@@ -707,7 +707,7 @@ dmu_move_long_range_impl(objset_t *os, dnode_t *dn,uint64_t object, uint64_t off
 			return (err);
 		}
 		flags=DMU_MOVE_TIER1;
-		dmu_move(os,object, chunk_begin, size ,buf, tx, flags);
+		//dmu_move(os,object, chunk_begin, size ,buf, tx, flags);
 		//dnode_free_range(dn, chunk_begin, chunk_end - chunk_begin, tx);
 		dmu_tx_commit(tx);
 		kmem_free(buf,size);
