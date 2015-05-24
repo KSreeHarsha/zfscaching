@@ -1566,7 +1566,8 @@ sync_object(objset_t *os, uint64_t object, int *print_header)
 
 		if (object_type==19){
 			//int fsize=dump_znode(os,object,bonus,bsize);
-			moverr= dmu_move_long_object(os,object);
+
+			//moverr= dmu_move_long_object(os,object);
 			#ifdef _KERNEL
 			printk("Object size is : %d\n",object_size);
 			printk("Error while moving  : %d\n",moverr);
