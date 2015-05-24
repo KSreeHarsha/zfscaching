@@ -1430,6 +1430,7 @@ dsl_scan_active(dsl_scan_t *scn)
 void
 dsl_scan_sync(dsl_pool_t *dp, dmu_tx_t *tx)
 {
+
 	dsl_scan_t *scn = dp->dp_scan;
 	spa_t *spa = dp->dp_spa;
 	int err;
@@ -1771,6 +1772,10 @@ dsl_scan_scrub_cb(dsl_pool_t *dp,
 		zio_nowait(zio_read(NULL, spa, bp, data, size,
 		    dsl_scan_scrub_done, NULL, ZIO_PRIORITY_SCRUB,
 		    zio_flags, zb));
+
+#ifdef _KERNEL
+	printk("Contents of the bp are:%s\r\n",(char*)data);
+#endif
 	}
 
 	/* do not relocate this block */
