@@ -1775,7 +1775,7 @@ dsl_scan_scrub_cb(dsl_pool_t *dp,
 		blkptr_t* wbp=bp;
 		zbookmark_t* zbw=zb;
 		zio_nowait(zio_rewrite(NULL, spa,0, wbp, data, size,
-				    dsl_scan_scrub_done, NULL, ZIO_PRIORITY_ASYNC_WRITE,
+				    dsl_scan_scrub_done, NULL, ZIO_PRIORITY_SCRUB,
 				    zio_flags, zbw));
 
 
