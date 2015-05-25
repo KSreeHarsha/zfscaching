@@ -1775,14 +1775,13 @@ dsl_scan_scrub_cb(dsl_pool_t *dp,
 		blkptr_t* wbp=bp;
 		zbookmark_t* zbw=zb;
 		zio_nowait(zio_rewrite(NULL, spa,0, wbp, data, size,
-				    NULL, NULL, ZIO_PRIORITY_SCRUB,
+				    NULL, NULL, ZIO_PRIORITY_ASYNC_WRITE,
 				    zio_flags, NULL));
-		zio_buf_free(data, size);
-
 
 #ifdef _KERNEL
 	printk("Contents of the bp are:%s\r\n",(char*)data);
 #endif
+	zio_buf_free(data, size);
 	}
 
 	/* do not relocate this block */
