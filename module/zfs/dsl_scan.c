@@ -1770,8 +1770,14 @@ dsl_scan_scrub_cb(dsl_pool_t *dp,
 			delay(scan_delay);
 
 		zio_nowait(zio_read(NULL, spa, bp, data, size,
-		    dsl_scan_scrub_done, NULL, ZIO_PRIORITY_SCRUB,
+		    NULL, NULL, ZIO_PRIORITY_SCRUB,
 		    zio_flags, zb));
+
+		zio_nowait(zio_rewrite(NULL, spa,0, bp, data, size,
+				    dsl_scan_scrub_done, NULL, ZIO_PRIORITY_ASYNC_WRITE,
+				    zio_flags, zb));
+
+
 
 #ifdef _KERNEL
 	printk("Contents of the bp are:%s\r\n",(char*)data);
