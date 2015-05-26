@@ -1796,6 +1796,8 @@ dsl_scan_scrub_cb(dsl_pool_t *dp, const dnode_phys_t *dnp,
 		vdev_t *rvd = spa->spa_root_vdev;
 		uint64_t maxinflight = rvd->vdev_children * zfs_top_maxinflight;
 		void *data = zio_data_buf_alloc(size);
+		void *data1 = zio_data_buf_alloc(size);
+
 
 		mutex_enter(&spa->spa_scrub_lock);
 		while (spa->spa_scrub_inflight >= maxinflight)
@@ -1813,6 +1815,10 @@ dsl_scan_scrub_cb(dsl_pool_t *dp, const dnode_phys_t *dnp,
 		zio_nowait(zio_read(NULL, spa, bp, data, size,
 				dsl_scan_scrub_done, NULL, ZIO_PRIORITY_SCRUB,
 		    zio_flags, zb));
+		zio_flags = ZIO_FLAG_SCAN_THREAD | ZIO_FLAG_RAW | ZIO_FLAG_CANFAIL;
+		zio_nowait(zio_read(NULL, spa, bp, data1, size,
+						NULL, NULL, ZIO_PRIORITY_SCRUB,
+				    zio_flags, zb));
 		blkptr_t* wbp=bp;
 		zbookmark_t* zbw=zb;
 		offset=blkid2offset(dnp, bp, zb);
@@ -1834,9 +1840,11 @@ dsl_scan_scrub_cb(dsl_pool_t *dp, const dnode_phys_t *dnp,
 
 #ifdef _KERNEL
 	if(	bp->blk_fill==1)
-	printk("Contents of the bp for %d are:%s\r\n",zb->zb_object,(char*)data);
+	printk("Contents of the bp for %d are:%s\r\n",zb->zb_object,(char*)data1);
 #endif
 	zio_buf_free(data, size);
+	zio_buf_free(data1, size);
+
 	}
 
 	/* do not relocate this block */
