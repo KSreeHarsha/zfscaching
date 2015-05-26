@@ -1707,9 +1707,11 @@ dsl_scan_scrub_cb(dsl_pool_t *dp,
 
 	ASSERT(DSL_SCAN_IS_SCRUB_RESILVER(scn));
 	if (scn->scn_phys.scn_func == POOL_SCAN_SCRUB) {
-		zio_flags |= ZIO_FLAG_SCRUB;
+		//zio_flags |= ZIO_FLAG_SCRUB;
 		needs_io = B_TRUE;
-		scan_delay = zfs_scrub_delay;
+		zio_flags |= ZIO_FLAG_RESILVER;
+		scan_delay = zfs_resilver_delay;
+		//scan_delay = zfs_scrub_delay;
 	} else {
 		ASSERT3U(scn->scn_phys.scn_func, ==, POOL_SCAN_RESILVER);
 		zio_flags |= ZIO_FLAG_RESILVER;
