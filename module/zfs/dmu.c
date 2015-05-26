@@ -677,6 +677,7 @@ dmu_move_long_range_impl(objset_t *os, dnode_t *dn,uint64_t object, uint64_t off
 	int dread_err;
 	uint64_t size=0;
 	uint64_t flags=0;
+	uint64_t error=0;
 
 	uint64_t start = 0;
 	uint64_t end;
