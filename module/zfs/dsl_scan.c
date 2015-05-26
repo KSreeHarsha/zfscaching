@@ -193,6 +193,23 @@ dsl_scan_fini(dsl_pool_t *dp)
 	}
 }
 
+static uint64_t
+blkid2offset(const dnode_phys_t *dnp, const blkptr_t *bp,
+    const zbookmark_phys_t *zb)
+{
+	if (dnp == NULL) {
+		ASSERT(zb->zb_level < 0);
+		if (zb->zb_object == 0)
+			return (zb->zb_blkid);
+		return (zb->zb_blkid * BP_GET_LSIZE(bp));
+	}
+
+	ASSERT(zb->zb_level >= 0);
+
+	return ((zb->zb_blkid <<
+	    (zb->zb_level * (dnp->dn_indblkshift - SPA_BLKPTRSHIFT))) *
+	    dnp->dn_datablkszsec << SPA_MINBLOCKSHIFT);
+}
 /* ARGSUSED */
 static int
 dsl_scan_setup_check(void *arg, dmu_tx_t *tx)
@@ -503,7 +520,7 @@ dsl_scan_zil_block(zilog_t *zilog, blkptr_t *bp, void *arg, uint64_t claim_txg)
 	SET_BOOKMARK(&zb, zh->zh_log.blk_cksum.zc_word[ZIL_ZC_OBJSET],
 	    ZB_ZIL_OBJECT, ZB_ZIL_LEVEL, bp->blk_cksum.zc_word[ZIL_ZC_SEQ]);
 
-	VERIFY(0 == scan_funcs[scn->scn_phys.scn_func](dp, bp, &zb));
+	VERIFY(0 == scan_funcs[scn->scn_phys.scn_func](dp,NULL, bp, &zb));
 	return (0);
 }
 
@@ -535,7 +552,7 @@ dsl_scan_zil_record(zilog_t *zilog, lr_t *lrc, void *arg, uint64_t claim_txg)
 		    lr->lr_foid, ZB_ZIL_LEVEL,
 		    lr->lr_offset / BP_GET_LSIZE(bp));
 
-		VERIFY(0 == scan_funcs[scn->scn_phys.scn_func](dp, bp, &zb));
+		VERIFY(0 == scan_funcs[scn->scn_phys.scn_func](dp,NULL,bp, &zb));
 	}
 	return (0);
 }
@@ -752,6 +769,8 @@ dsl_scan_visitdnode(dsl_scan_t *scn, dsl_dataset_t *ds,
 	}
 }
 
+
+
 /*
  * The arguments are in this order because mdb can only print the
  * first 5; we want them to be useful.
@@ -826,7 +845,7 @@ dsl_scan_visitbp(blkptr_t *bp, const zbookmark_t *zb,
 	 * under it was modified.
 	 */
 	if (BP_PHYSICAL_BIRTH(bp) <= scn->scn_phys.scn_cur_max_txg) {
-		scan_funcs[scn->scn_phys.scn_func](dp, bp, zb);
+		scan_funcs[scn->scn_phys.scn_func](dp,dnp, bp, zb);
 	}
 	if (buf)
 		(void) arc_buf_remove_ref(buf, &buf);
@@ -1281,7 +1300,7 @@ dsl_scan_ddt_entry(dsl_scan_t *scn, enum zio_checksum checksum,
 		ddt_bp_create(checksum, ddk, ddp, &bp);
 
 		scn->scn_visited_this_txg++;
-		scan_funcs[scn->scn_phys.scn_func](scn->scn_dp, &bp, &zb);
+		scan_funcs[scn->scn_phys.scn_func](scn->scn_dp,NULL, &bp, &zb);
 	}
 }
 
@@ -1694,7 +1713,7 @@ dsl_scan_scrub_done(zio_t *zio)
 }
 
 static int
-dsl_scan_scrub_cb(dsl_pool_t *dp,
+dsl_scan_scrub_cb(dsl_pool_t *dp, const dnode_phys_t *dnp,
     const blkptr_t *bp, const zbookmark_t *zb)
 {
 	dsl_scan_t *scn = dp->dp_scan;
@@ -1705,7 +1724,9 @@ dsl_scan_scrub_cb(dsl_pool_t *dp,
 	int zio_flags = ZIO_FLAG_SCAN_THREAD | ZIO_FLAG_RAW | ZIO_FLAG_CANFAIL;
 	int scan_delay = 0;
 	int d;
-
+#ifdef _KERNEL
+	printk("Offset in dsl:%16llx \n", (u_longlong_t)blkid2offset(dnp, bp, zb));
+#endif
 	if (phys_birth <= scn->scn_phys.scn_min_txg ||
 	    phys_birth >= scn->scn_phys.scn_max_txg)
 		return (0);
@@ -1789,10 +1810,10 @@ dsl_scan_scrub_cb(dsl_pool_t *dp,
 		    zio_flags, zb));
 		blkptr_t* wbp=bp;
 		zbookmark_t* zbw=zb;
-		zio_flags=ZIO_FLAG_SCAN_THREAD | ZIO_FLAG_RAW | ZIO_FLAG_CANFAIL;
-		zio_nowait(zio_rewrite(NULL, spa,0, wbp, data, size,
-				    NULL, NULL, ZIO_PRIORITY_ASYNC_WRITE,
-				    zio_flags, NULL));
+		//zio_flags=ZIO_FLAG_SCAN_THREAD | ZIO_FLAG_RAW | ZIO_FLAG_CANFAIL;
+		//zio_nowait(zio_rewrite(NULL, spa,0, wbp, data, size,
+			//	    NULL, NULL, ZIO_PRIORITY_ASYNC_WRITE,
+				//    zio_flags, NULL));
 
 #ifdef _KERNEL
 	//printk("Contents of the bp are:%s\r\n",(char*)data);
