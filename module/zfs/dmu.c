@@ -700,7 +700,7 @@ dmu_move_long_range_impl(objset_t *os, dnode_t *dn,uint64_t object, uint64_t off
 		ASSERT3U(chunk_begin, <=, chunk_end);
 		size=chunk_end - chunk_begin;
 		void *buf=kmem_alloc(size, KM_PUSHPAGE);
-		dread_err=dmu_read(os,object,offset,size,buf,DMU_READ_PREFETCH);
+		dread_err=dmu_read(os,object,chunk_begin,size,buf,DMU_READ_PREFETCH);
 		/**tx = dmu_tx_create(os);
 		dmu_tx_hold_write(tx, dn->dn_object,
 		    chunk_begin, size);
