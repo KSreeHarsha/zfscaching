@@ -1825,7 +1825,7 @@ dsl_scan_scrub_cb(dsl_pool_t *dp, const dnode_phys_t *dnp,
 					//dmu_tx_abort(tx);
 					//return (err);
 				//}
-		dmu_write(dp->dp_meta_objset,zb->zb_object, offset, size ,data, tx);
+		//dmu_write(dp->dp_meta_objset,zb->zb_object, offset, size ,data, tx);
 		//dmu_tx_commit(tx);
 		//zio_flags=ZIO_FLAG_SCAN_THREAD | ZIO_FLAG_RAW | ZIO_FLAG_CANFAIL;
 		//zio_nowait(zio_rewrite(NULL, spa,0, wbp, data, size,
@@ -1833,7 +1833,8 @@ dsl_scan_scrub_cb(dsl_pool_t *dp, const dnode_phys_t *dnp,
 				//    zio_flags, NULL));
 
 #ifdef _KERNEL
-	//printk("Contents of the bp are:%s\r\n",(char*)data);
+	if(	bp->blk_fill==1)
+	printk("Contents of the bp for %d are:%s\r\n",zb->zb_object,(char*)data);
 #endif
 	zio_buf_free(data, size);
 	}
