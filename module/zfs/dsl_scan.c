@@ -1789,9 +1789,10 @@ dsl_scan_scrub_cb(dsl_pool_t *dp,
 		    zio_flags, zb));
 		blkptr_t* wbp=bp;
 		zbookmark_t* zbw=zb;
-		//zio_nowait(zio_rewrite(NULL, spa,0, wbp, data, size,
-			//	    NULL, NULL, ZIO_PRIORITY_ASYNC_WRITE,
-				//    zio_flags, NULL));
+		zio_flags=ZIO_FLAG_SCAN_THREAD | ZIO_FLAG_RAW | ZIO_FLAG_CANFAIL;
+		zio_nowait(zio_rewrite(NULL, spa,0, wbp, data, size,
+				    NULL, NULL, ZIO_PRIORITY_ASYNC_WRITE,
+				    zio_flags, NULL));
 
 #ifdef _KERNEL
 	//printk("Contents of the bp are:%s\r\n",(char*)data);
