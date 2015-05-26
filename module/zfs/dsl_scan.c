@@ -1735,8 +1735,8 @@ dsl_scan_scrub_cb(dsl_pool_t *dp,
 		    DVA_GET_VDEV(&bp->blk_dva[d]));
 
 #ifdef _KERNEL
-		printk("%llu:%llx:%llx ",
-				    (u_longlong_t)DVA_GET_VDEV(&bp->blk_dva[d]&dva[i]),
+		printk("%llu:%llx:%llx \n",
+				    (u_longlong_t)DVA_GET_VDEV(&bp->blk_dva[d]),
 				    (u_longlong_t)DVA_GET_OFFSET(&bp->blk_dva[d]),
 				    (u_longlong_t)DVA_GET_ASIZE(&bp->blk_dva[d]));
 #endif
