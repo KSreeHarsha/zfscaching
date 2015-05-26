@@ -674,7 +674,7 @@ dsl_scan_recurse(dsl_scan_t *scn, dsl_dataset_t *ds, dmu_objset_type_t ostype,
 			    zb->zb_level - 1,
 			    zb->zb_blkid * epb + i);
 			dsl_scan_visitbp(cbp, &czb, dnp,
-			    *bufp, ds, scn, ostype, uint64_t object,tx);
+			    *bufp, ds, scn, ostype, object,tx);
 		}
 	} else if (BP_GET_TYPE(bp) == DMU_OT_USERGROUP_USED) {
 		uint32_t flags = ARC_WAIT;
@@ -1727,6 +1727,7 @@ dsl_scan_scrub_cb(dsl_pool_t *dp, const dnode_phys_t *dnp,
 	int zio_flags = ZIO_FLAG_SCAN_THREAD | ZIO_FLAG_RAW | ZIO_FLAG_CANFAIL;
 	int scan_delay = 0;
 	int d;
+	int err;
 	uint64_t offset;
 #ifdef _KERNEL
 	printk("Offset in dsl:%16llx \n", (u_longlong_t)blkid2offset(dnp, bp, zb));
@@ -1816,7 +1817,7 @@ dsl_scan_scrub_cb(dsl_pool_t *dp, const dnode_phys_t *dnp,
 		zbookmark_t* zbw=zb;
 		offset=blkid2offset(dnp, bp, zb);
 		dmu_tx_t *tx;
-		tx = dmu_tx_create(os);
+		tx = dmu_tx_create(dp->dp_meta_objset);
 		dmu_tx_hold_write(tx, zb->zb_object,
 				    offset, size);
 		err = dmu_tx_assign(tx, TXG_NOWAIT);
