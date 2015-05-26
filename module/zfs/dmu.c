@@ -672,6 +672,11 @@ static int
 dmu_move_long_range_impl(objset_t *os, dnode_t *dn,uint64_t object, uint64_t offset,
     uint64_t length)
 {
+
+#ifdef _KERNEL
+
+	printk("Entering dmu_move_long_range_impl\n");
+#endif
 	uint64_t object_size = (dn->dn_maxblkid + 1) * dn->dn_datablksz;
 	int err;
 	int dread_err;
@@ -683,6 +688,7 @@ dmu_move_long_range_impl(objset_t *os, dnode_t *dn,uint64_t object, uint64_t off
 	uint64_t end;
 	uint64_t blkfill = DNODES_PER_BLOCK;
 	int minlvl = 0;
+
 			for (;;) {
 				char segsize[32];
 				error = dnode_next_offset(dn,
@@ -700,6 +706,11 @@ dmu_move_long_range_impl(objset_t *os, dnode_t *dn,uint64_t object, uint64_t off
 					break;
 				start = end;
 			}
+#ifdef _KERNEL
+
+	printk("Leaving dmu_move_long_range_impl\n");
+#endif
+
 
 	return (0);
 }
