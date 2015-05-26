@@ -685,6 +685,9 @@ dmu_move_long_range_impl(objset_t *os, dnode_t *dn,uint64_t object, uint64_t off
 
 	while (length != 0) {
 		uint64_t chunk_end, chunk_begin;
+#ifdef _KERNEL
+		printk("Start:%d End:%d",chunk_start,chunk_end);
+#endif
 		dmu_tx_t *tx;
 
 		chunk_end = chunk_begin = offset + length;
