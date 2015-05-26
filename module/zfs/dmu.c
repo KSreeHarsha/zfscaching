@@ -698,7 +698,7 @@ dmu_move_long_range_impl(objset_t *os, dnode_t *dn,uint64_t object, uint64_t off
 		size=chunk_end - chunk_begin;
 		void *buf=kmem_alloc(size, KM_PUSHPAGE);
 		dread_err=dmu_read(os,object,offset,size,buf,DMU_READ_PREFETCH);
-		tx = dmu_tx_create(os);
+		/**tx = dmu_tx_create(os);
 		dmu_tx_hold_write(tx, dn->dn_object,
 		    chunk_begin, size);
 		err = dmu_tx_assign(tx, TXG_NOWAIT);
@@ -709,7 +709,7 @@ dmu_move_long_range_impl(objset_t *os, dnode_t *dn,uint64_t object, uint64_t off
 		flags=DMU_MOVE_TIER1;
 		//dmu_move(os,object, chunk_begin, size ,buf, tx, flags);
 		//dnode_free_range(dn, chunk_begin, chunk_end - chunk_begin, tx);
-		dmu_tx_commit(tx);
+		dmu_tx_commit(tx);**/
 		kmem_free(buf,size);
 		length -= chunk_end - chunk_begin;
 	}
