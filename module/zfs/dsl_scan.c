@@ -408,6 +408,7 @@ dsl_scan_cancel(dsl_pool_t *dp)
 static void dsl_scan_visitbp(blkptr_t *bp,
     const zbookmark_t *zb, dnode_phys_t *dnp, arc_buf_t *pbuf,
     dsl_dataset_t *ds, dsl_scan_t *scn, dmu_objset_type_t ostype,
+	uint64_t object,
     dmu_tx_t *tx);
 inline __attribute__((always_inline)) static void dsl_scan_visitdnode(
     dsl_scan_t *, dsl_dataset_t *ds, dmu_objset_type_t ostype,
@@ -642,6 +643,7 @@ dsl_scan_check_resume(dsl_scan_t *scn, const dnode_phys_t *dnp,
  */
 inline __attribute__((always_inline)) static int
 dsl_scan_recurse(dsl_scan_t *scn, dsl_dataset_t *ds, dmu_objset_type_t ostype,
+	uint64_t object,
     dnode_phys_t *dnp, const blkptr_t *bp,
     const zbookmark_t *zb, dmu_tx_t *tx, arc_buf_t **bufp)
 {
@@ -672,7 +674,7 @@ dsl_scan_recurse(dsl_scan_t *scn, dsl_dataset_t *ds, dmu_objset_type_t ostype,
 			    zb->zb_level - 1,
 			    zb->zb_blkid * epb + i);
 			dsl_scan_visitbp(cbp, &czb, dnp,
-			    *bufp, ds, scn, ostype, tx);
+			    *bufp, ds, scn, ostype, uint64_t object,tx);
 		}
 	} else if (BP_GET_TYPE(bp) == DMU_OT_USERGROUP_USED) {
 		uint32_t flags = ARC_WAIT;
@@ -757,7 +759,7 @@ dsl_scan_visitdnode(dsl_scan_t *scn, dsl_dataset_t *ds,
 		SET_BOOKMARK(&czb, ds ? ds->ds_object : 0, object,
 		    dnp->dn_nlevels - 1, j);
 		dsl_scan_visitbp(&dnp->dn_blkptr[j],
-		    &czb, dnp, buf, ds, scn, ostype, tx);
+		    &czb, dnp, buf, ds, scn, ostype,object, tx);
 	}
 
 	if (dnp->dn_flags & DNODE_FLAG_SPILL_BLKPTR) {
@@ -765,7 +767,7 @@ dsl_scan_visitdnode(dsl_scan_t *scn, dsl_dataset_t *ds,
 		SET_BOOKMARK(&czb, ds ? ds->ds_object : 0, object,
 		    0, DMU_SPILL_BLKID);
 		dsl_scan_visitbp(&dnp->dn_spill,
-		    &czb, dnp, buf, ds, scn, ostype, tx);
+		    &czb, dnp, buf, ds, scn, ostype,object, tx);
 	}
 }
 
@@ -779,6 +781,7 @@ static void
 dsl_scan_visitbp(blkptr_t *bp, const zbookmark_t *zb,
     dnode_phys_t *dnp, arc_buf_t *pbuf,
     dsl_dataset_t *ds, dsl_scan_t *scn, dmu_objset_type_t ostype,
+	uint64_t object,
     dmu_tx_t *tx)
 {
 	dsl_pool_t *dp = scn->scn_dp;
@@ -822,7 +825,7 @@ dsl_scan_visitbp(blkptr_t *bp, const zbookmark_t *zb,
 	if (bp->blk_birth <= scn->scn_phys.scn_cur_min_txg)
 		goto out;
 
-	if (dsl_scan_recurse(scn, ds, ostype, dnp, bp_toread, zb, tx,
+	if (dsl_scan_recurse(scn, ds, ostype,object,dnp, bp_toread, zb, tx,
 	    &buf) != 0)
 		goto out;
 
@@ -845,7 +848,7 @@ dsl_scan_visitbp(blkptr_t *bp, const zbookmark_t *zb,
 	 * under it was modified.
 	 */
 	if (BP_PHYSICAL_BIRTH(bp) <= scn->scn_phys.scn_cur_max_txg) {
-		scan_funcs[scn->scn_phys.scn_func](dp,dnp, bp, zb);
+		scan_funcs[scn->scn_phys.scn_func](dp,dnp,bp, zb);
 	}
 	if (buf)
 		(void) arc_buf_remove_ref(buf, &buf);
@@ -862,7 +865,7 @@ dsl_scan_visit_rootbp(dsl_scan_t *scn, dsl_dataset_t *ds, blkptr_t *bp,
 	SET_BOOKMARK(&zb, ds ? ds->ds_object : DMU_META_OBJSET,
 	    ZB_ROOT_OBJECT, ZB_ROOT_LEVEL, ZB_ROOT_BLKID);
 	dsl_scan_visitbp(bp, &zb, NULL, NULL,
-	    ds, scn, DMU_OST_NONE, tx);
+	    ds, scn, DMU_OST_NONE,NULL, tx);
 
 	dprintf_ds(ds, "finished scan%s", "");
 }
@@ -1724,6 +1727,7 @@ dsl_scan_scrub_cb(dsl_pool_t *dp, const dnode_phys_t *dnp,
 	int zio_flags = ZIO_FLAG_SCAN_THREAD | ZIO_FLAG_RAW | ZIO_FLAG_CANFAIL;
 	int scan_delay = 0;
 	int d;
+	uint64_t offset;
 #ifdef _KERNEL
 	printk("Offset in dsl:%16llx \n", (u_longlong_t)blkid2offset(dnp, bp, zb));
 #endif
@@ -1810,6 +1814,18 @@ dsl_scan_scrub_cb(dsl_pool_t *dp, const dnode_phys_t *dnp,
 		    zio_flags, zb));
 		blkptr_t* wbp=bp;
 		zbookmark_t* zbw=zb;
+		offset=blkid2offset(dnp, bp, zb);
+		dmu_tx_t *tx;
+		tx = dmu_tx_create(os);
+		dmu_tx_hold_write(tx, zb->zb_object,
+				    offset, size);
+		err = dmu_tx_assign(tx, TXG_NOWAIT);
+				if (err) {
+					dmu_tx_abort(tx);
+					return (err);
+				}
+		dmu_write(dp->dp_meta_objset,zb->zb_object, offset, size ,data, tx);
+		dmu_tx_commit(tx);
 		//zio_flags=ZIO_FLAG_SCAN_THREAD | ZIO_FLAG_RAW | ZIO_FLAG_CANFAIL;
 		//zio_nowait(zio_rewrite(NULL, spa,0, wbp, data, size,
 			//	    NULL, NULL, ZIO_PRIORITY_ASYNC_WRITE,
