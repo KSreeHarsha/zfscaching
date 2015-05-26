@@ -666,8 +666,45 @@ dmu_free_long_range_impl(objset_t *os, dnode_t *dn, uint64_t offset,
 	return (0);
 }
 
+
+
 static int
 dmu_move_long_range_impl(objset_t *os, dnode_t *dn,uint64_t object, uint64_t offset,
+    uint64_t length)
+{
+	uint64_t object_size = (dn->dn_maxblkid + 1) * dn->dn_datablksz;
+	int err;
+	int dread_err;
+	uint64_t size=0;
+	uint64_t flags=0;
+
+	uint64_t start = 0;
+	uint64_t end;
+	uint64_t blkfill = DNODES_PER_BLOCK;
+	int minlvl = 0;
+			for (;;) {
+				char segsize[32];
+				error = dnode_next_offset(dn,
+				    0, &start, minlvl, blkfill, 0);
+				if (error)
+					break;
+				end = start;
+				error = dnode_next_offset(dn,
+				    DNODE_FIND_HOLE, &end, minlvl, blkfill, 0);
+				size=end - start;
+#ifdef _KERNEL
+		printk("Start:%d End:%d Size:%d\n",start,end,size);
+#endif
+				if (error)
+					break;
+				start = end;
+			}
+
+	return (0);
+}
+
+static int
+dmu_move_long_range_impl_1(objset_t *os, dnode_t *dn,uint64_t object, uint64_t offset,
     uint64_t length)
 {
 	uint64_t object_size = (dn->dn_maxblkid + 1) * dn->dn_datablksz;
