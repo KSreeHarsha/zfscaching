@@ -1717,7 +1717,7 @@ dsl_scan_scrub_done(zio_t *zio)
 
 static int
 dsl_scan_scrub_cb(dsl_pool_t *dp, const dnode_phys_t *dnp,
-    const blkptr_t *bp, const zbookmark_t *zb)
+    const blkptr_t *bp,dmu_tx_t *tx, const zbookmark_t *zb)
 {
 	dsl_scan_t *scn = dp->dp_scan;
 	size_t size = BP_GET_PSIZE(bp);
