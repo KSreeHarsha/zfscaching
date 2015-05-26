@@ -731,7 +731,9 @@ dsl_scan_visitdnode(dsl_scan_t *scn, dsl_dataset_t *ds,
     uint64_t object, dmu_tx_t *tx)
 {
 	int j;
-
+#ifdef _KERNEL
+	printk("Object in OS is:%d\n",object);
+#endif
 	for (j = 0; j < dnp->dn_nblkptr; j++) {
 		zbookmark_t czb;
 
