@@ -792,7 +792,12 @@ dsl_scan_visitbp(blkptr_t *bp, const zbookmark_t *zb,
 	 *    zb->zb_objset, zb->zb_object, zb->zb_level, zb->zb_blkid,
 	 *    pbuf, bp);
 	 */
-
+#ifdef _KERNEL
+	  printk("visiting ds=%p/%llu zb=%llx/%llx/%llx/%llx buf=%p bp=%p",
+		     ds, ds ? ds->ds_object : 0,
+		     zb->zb_objset, zb->zb_object, zb->zb_level, zb->zb_blkid,
+		     pbuf, bp);
+#endif
 	if (bp->blk_birth <= scn->scn_phys.scn_cur_min_txg)
 		goto out;
 
@@ -1707,11 +1712,11 @@ dsl_scan_scrub_cb(dsl_pool_t *dp,
 
 	ASSERT(DSL_SCAN_IS_SCRUB_RESILVER(scn));
 	if (scn->scn_phys.scn_func == POOL_SCAN_SCRUB) {
-		//zio_flags |= ZIO_FLAG_SCRUB;
+		zio_flags |= ZIO_FLAG_SCRUB;
 		needs_io = B_TRUE;
-		zio_flags |= ZIO_FLAG_RESILVER;
-		scan_delay = zfs_resilver_delay;
-		//scan_delay = zfs_scrub_delay;
+		//zio_flags |= ZIO_FLAG_RESILVER;
+		//scan_delay = zfs_resilver_delay;
+		scan_delay = zfs_scrub_delay;
 	} else {
 		ASSERT3U(scn->scn_phys.scn_func, ==, POOL_SCAN_RESILVER);
 		zio_flags |= ZIO_FLAG_RESILVER;
