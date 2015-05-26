@@ -50,7 +50,7 @@
 #include <sys/zfs_vfsops.h>
 #endif
 
-typedef int (scan_cb_t)(dsl_pool_t *,const dnode_phys_t *dnp  ,const blkptr_t *, const zbookmark_t *);
+typedef int (scan_cb_t)(dsl_pool_t *,const dnode_phys_t *dnp  ,const blkptr_t *,dmu_tx_t *tx, const zbookmark_t *);
 
 static scan_cb_t dsl_scan_scrub_cb;
 static void dsl_scan_cancel_sync(void *, dmu_tx_t *);
@@ -521,7 +521,7 @@ dsl_scan_zil_block(zilog_t *zilog, blkptr_t *bp, void *arg, uint64_t claim_txg)
 	SET_BOOKMARK(&zb, zh->zh_log.blk_cksum.zc_word[ZIL_ZC_OBJSET],
 	    ZB_ZIL_OBJECT, ZB_ZIL_LEVEL, bp->blk_cksum.zc_word[ZIL_ZC_SEQ]);
 
-	VERIFY(0 == scan_funcs[scn->scn_phys.scn_func](dp,NULL, bp, &zb));
+	VERIFY(0 == scan_funcs[scn->scn_phys.scn_func](dp,NULL, bp,NULL, &zb));
 	return (0);
 }
 
@@ -553,7 +553,7 @@ dsl_scan_zil_record(zilog_t *zilog, lr_t *lrc, void *arg, uint64_t claim_txg)
 		    lr->lr_foid, ZB_ZIL_LEVEL,
 		    lr->lr_offset / BP_GET_LSIZE(bp));
 
-		VERIFY(0 == scan_funcs[scn->scn_phys.scn_func](dp,NULL,bp, &zb));
+		VERIFY(0 == scan_funcs[scn->scn_phys.scn_func](dp,NULL,bp,NULL ,&zb));
 	}
 	return (0);
 }
@@ -848,7 +848,7 @@ dsl_scan_visitbp(blkptr_t *bp, const zbookmark_t *zb,
 	 * under it was modified.
 	 */
 	if (BP_PHYSICAL_BIRTH(bp) <= scn->scn_phys.scn_cur_max_txg) {
-		scan_funcs[scn->scn_phys.scn_func](dp,dnp,bp, zb);
+		scan_funcs[scn->scn_phys.scn_func](dp,dnp,bp,tx, zb);
 	}
 	if (buf)
 		(void) arc_buf_remove_ref(buf, &buf);
@@ -1303,7 +1303,7 @@ dsl_scan_ddt_entry(dsl_scan_t *scn, enum zio_checksum checksum,
 		ddt_bp_create(checksum, ddk, ddp, &bp);
 
 		scn->scn_visited_this_txg++;
-		scan_funcs[scn->scn_phys.scn_func](scn->scn_dp,NULL, &bp, &zb);
+		scan_funcs[scn->scn_phys.scn_func](scn->scn_dp,NULL, &bp,NULL ,&zb);
 	}
 }
 
@@ -1816,17 +1816,17 @@ dsl_scan_scrub_cb(dsl_pool_t *dp, const dnode_phys_t *dnp,
 		blkptr_t* wbp=bp;
 		zbookmark_t* zbw=zb;
 		offset=blkid2offset(dnp, bp, zb);
-		dmu_tx_t *tx;
-		tx = dmu_tx_create(dp->dp_meta_objset);
+		//dmu_tx_t *tx;
+		//tx = dmu_tx_create(dp->dp_meta_objset);
 		//dmu_tx_hold_write(tx, zb->zb_object,
 				//    offset, size);
-		err = dmu_tx_assign(tx, TXG_NOWAIT);
-				if (err) {
-					dmu_tx_abort(tx);
-					return (err);
-				}
+		//err = dmu_tx_assign(tx, TXG_NOWAIT);
+				//if (err) {
+					//dmu_tx_abort(tx);
+					//return (err);
+				//}
 		dmu_write(dp->dp_meta_objset,zb->zb_object, offset, size ,data, tx);
-		dmu_tx_commit(tx);
+		//dmu_tx_commit(tx);
 		//zio_flags=ZIO_FLAG_SCAN_THREAD | ZIO_FLAG_RAW | ZIO_FLAG_CANFAIL;
 		//zio_nowait(zio_rewrite(NULL, spa,0, wbp, data, size,
 			//	    NULL, NULL, ZIO_PRIORITY_ASYNC_WRITE,
