@@ -1819,12 +1819,12 @@ dsl_scan_scrub_cb(dsl_pool_t *dp, const dnode_phys_t *dnp,
 		dmu_tx_t *tx;
 		//tx = dmu_tx_create(dp->dp_meta_objset);
 		//dmu_tx_hold_write(tx, zb->zb_object,
-				    offset, size);
+				//    offset, size);
 		//err = dmu_tx_assign(tx, TXG_NOWAIT);
-				if (err) {
-					dmu_tx_abort(tx);
-					return (err);
-				}
+				//if (err) {
+					//dmu_tx_abort(tx);
+					//return (err);
+				//}
 		//dmu_write(dp->dp_meta_objset,zb->zb_object, offset, size ,data, tx);
 		//dmu_tx_commit(tx);
 		//zio_flags=ZIO_FLAG_SCAN_THREAD | ZIO_FLAG_RAW | ZIO_FLAG_CANFAIL;
