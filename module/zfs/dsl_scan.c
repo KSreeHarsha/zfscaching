@@ -195,7 +195,7 @@ dsl_scan_fini(dsl_pool_t *dp)
 
 static uint64_t
 blkid2offset(const dnode_phys_t *dnp, const blkptr_t *bp,
-    const zbookmark_phys_t *zb)
+    const zbookmark_t *zb)
 {
 	if (dnp == NULL) {
 		ASSERT(zb->zb_level < 0);
