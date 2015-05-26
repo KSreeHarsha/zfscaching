@@ -50,7 +50,7 @@
 #include <sys/zfs_vfsops.h>
 #endif
 
-typedef int (scan_cb_t)(dsl_pool_t *, const blkptr_t *, const zbookmark_t *);
+typedef int (scan_cb_t)(dsl_pool_t *,const dnode_phys_t *dnp  ,const blkptr_t *, const zbookmark_t *);
 
 static scan_cb_t dsl_scan_scrub_cb;
 static void dsl_scan_cancel_sync(void *, dmu_tx_t *);
