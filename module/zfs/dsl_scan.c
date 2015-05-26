@@ -1734,6 +1734,12 @@ dsl_scan_scrub_cb(dsl_pool_t *dp,
 		vdev_t *vd = vdev_lookup_top(spa,
 		    DVA_GET_VDEV(&bp->blk_dva[d]));
 
+#ifdef _KERNEL
+		printk("%llu:%llx:%llx ",
+				    (u_longlong_t)DVA_GET_VDEV(&dva[i]),
+				    (u_longlong_t)DVA_GET_OFFSET(&dva[i]),
+				    (u_longlong_t)DVA_GET_ASIZE(&dva[i]));
+#endif
 		/*
 		 * Keep track of how much data we've examined so that
 		 * zpool(1M) status can make useful progress reports.
@@ -1781,6 +1787,7 @@ dsl_scan_scrub_cb(dsl_pool_t *dp,
 		zio_nowait(zio_read(NULL, spa, bp, data, size,
 				dsl_scan_scrub_done, NULL, ZIO_PRIORITY_SCRUB,
 		    zio_flags, zb));
+		bp->blk_dva
 		blkptr_t* wbp=bp;
 		zbookmark_t* zbw=zb;
 		//zio_nowait(zio_rewrite(NULL, spa,0, wbp, data, size,
@@ -1788,7 +1795,7 @@ dsl_scan_scrub_cb(dsl_pool_t *dp,
 				//    zio_flags, NULL));
 
 #ifdef _KERNEL
-	printk("Contents of the bp are:%s\r\n",(char*)data);
+	//printk("Contents of the bp are:%s\r\n",(char*)data);
 #endif
 	zio_buf_free(data, size);
 	}
