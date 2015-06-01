@@ -769,25 +769,6 @@ dmu_move_long_range_impl_1(objset_t *os, dnode_t *dn,uint64_t object, uint64_t o
 }
 
 
-int
-dmu_move_long_range(objset_t *os, uint64_t object,
-    uint64_t offset, uint64_t length)
-{
-	dnode_t *dn;
-	int err;
-#ifdef _KERNEL
-	printk("Entering dmu_move_long_range\n");
-#endif
-	err = dnode_hold(os, object, FTAG, &dn);
-	if (err != 0)
-		return (err);
-	dump_indirect(dn);
-
-//	err = dmu_move_long_range_impl(os, dn,object, offset, length);
-
-	dnode_rele(dn, FTAG);
-	return (err);
-}
 
 static uint64_t
 blkid2offset(const dnode_phys_t *dnp, const blkptr_t *bp,
@@ -891,6 +872,27 @@ dump_indirect(dnode_t *dn)
 
 	//(void) printf("\n");
 }
+
+int
+dmu_move_long_range(objset_t *os, uint64_t object,
+    uint64_t offset, uint64_t length)
+{
+	dnode_t *dn;
+	int err;
+#ifdef _KERNEL
+	printk("Entering dmu_move_long_range\n");
+#endif
+	err = dnode_hold(os, object, FTAG, &dn);
+	if (err != 0)
+		return (err);
+	dump_indirect(dn);
+
+//	err = dmu_move_long_range_impl(os, dn,object, offset, length);
+
+	dnode_rele(dn, FTAG);
+	return (err);
+}
+
 int
 dmu_free_long_range(objset_t *os, uint64_t object,
     uint64_t offset, uint64_t length)
