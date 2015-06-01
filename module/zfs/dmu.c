@@ -862,7 +862,7 @@ visit_indirect(spa_t *spa, const dnode_phys_t *dnp,
 			SET_BOOKMARK(&czb, zb->zb_objset, zb->zb_object,
 			    zb->zb_level - 1,
 			    zb->zb_blkid * epb + i);
-			err = visit_indirect(spa, dnp, cbp, &czb);
+			err = visit_indirect(spa, dnp, cbp, &czb,os, object);
 			if (err)
 				break;
 			fill += cbp->blk_fill;
