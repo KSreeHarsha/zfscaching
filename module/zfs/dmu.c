@@ -796,7 +796,6 @@ print_indirect(blkptr_t *bp, const zbookmark_t *zb,
 	int i;
 	int ndvas=BP_GET_NDVAS(bp);
 	const dva_t *dva = bp->blk_dva;
-
 	ASSERT3U(BP_GET_TYPE(bp), ==, dnp->dn_type);
 	ASSERT3U(BP_GET_LEVEL(bp), ==, zb->zb_level);
 #ifdef _KERNEL
