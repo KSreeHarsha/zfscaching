@@ -823,7 +823,7 @@ print_indirect(blkptr_t *bp, const zbookmark_t *zb,
 			dmu_move(os,object, offset, asize ,buf, tx);
 			//dnode_free_range(dn, chunk_begin, chunk_end - chunk_begin, tx);
 			dmu_tx_commit(tx);
-			kmem_free(buf,size);
+			kmem_free(buf,asize);
 
 
 	ASSERT(zb->zb_level >= 0);
