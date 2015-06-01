@@ -796,7 +796,7 @@ print_indirect(blkptr_t *bp, const zbookmark_t *zb,
 
 	ASSERT3U(BP_GET_TYPE(bp), ==, dnp->dn_type);
 	ASSERT3U(BP_GET_LEVEL(bp), ==, zb->zb_level);
-#ifdef
+#ifdef _KERNEL
 	printk("Blk Offset %16llx--%llu:%llx:%llx\n", (u_longlong_t)DVA_GET_VDEV(&dva[0]),
 		    (u_longlong_t)DVA_GET_OFFSET(&dva[0]),
 		    (u_longlong_t)DVA_GET_ASIZE(&dva[0]), (u_longlong_t)blkid2offset(dnp, bp, zb));
