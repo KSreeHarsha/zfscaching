@@ -795,6 +795,8 @@ print_indirect(blkptr_t *bp, const zbookmark_t *zb,
 	int l;
 	int i;
 	int ndvas=BP_GET_NDVAS(bp);
+	dmu_tx_t *tx;
+	int err;
 	const dva_t *dva = bp->blk_dva;
 	ASSERT3U(BP_GET_TYPE(bp), ==, dnp->dn_type);
 	ASSERT3U(BP_GET_LEVEL(bp), ==, zb->zb_level);
@@ -809,7 +811,7 @@ print_indirect(blkptr_t *bp, const zbookmark_t *zb,
 	u_longlong_t asize=DVA_GET_ASIZE(&dva[0]);
 
 
-	  void *buf=kmem_alloc(size, KM_PUSHPAGE);
+	  void *buf=kmem_alloc(asize, KM_PUSHPAGE);
 			tx = dmu_tx_create(os);
 			dmu_tx_hold_write(tx,object,offset, asize);
 			err = dmu_tx_assign(tx, TXG_NOWAIT);
@@ -817,7 +819,7 @@ print_indirect(blkptr_t *bp, const zbookmark_t *zb,
 				dmu_tx_abort(tx);
 				return (err);
 			}
-			flags=DMU_MOVE_TIER1;
+			//lags=DMU_MOVE_TIER1;
 			dmu_move(os,object, offset, asize ,buf, tx);
 			//dnode_free_range(dn, chunk_begin, chunk_end - chunk_begin, tx);
 			dmu_tx_commit(tx);
