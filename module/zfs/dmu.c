@@ -809,9 +809,10 @@ print_indirect(blkptr_t *bp, const zbookmark_t *zb,
 	u_longlong_t vdev=DVA_GET_VDEV(&dva[0]);
 	u_longlong_t offset=blkid2offset(dnp, bp, zb);
 	u_longlong_t asize=DVA_GET_ASIZE(&dva[0]);
+	u_longlong_t level= BP_GET_LEVEL(bp);
 
-
-	  void *buf=kmem_alloc(asize, KM_PUSHPAGE);
+	if (level==0 && vdev==0){
+	        void *buf=kmem_alloc(asize, KM_PUSHPAGE);
 			tx = dmu_tx_create(os);
 			dmu_tx_hold_write(tx,object,offset, asize);
 			err = dmu_tx_assign(tx, TXG_NOWAIT);
@@ -824,7 +825,7 @@ print_indirect(blkptr_t *bp, const zbookmark_t *zb,
 			//dnode_free_range(dn, chunk_begin, chunk_end - chunk_begin, tx);
 			dmu_tx_commit(tx);
 			kmem_free(buf,asize);
-
+	}
 
 	ASSERT(zb->zb_level >= 0);
 
@@ -1141,7 +1142,7 @@ dmu_move(objset_t *os, uint64_t object, uint64_t offset, uint64_t size,
 				dmu_buf_t *db = dbp[i];
 
 				ASSERT(size > 0);
-
+				db->tier=1;
 				bufoff = offset - db->db_offset;
 				tocpy = (int)MIN(db->db_size - bufoff, size);
 
