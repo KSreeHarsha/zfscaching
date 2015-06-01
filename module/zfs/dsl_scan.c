@@ -1702,7 +1702,7 @@ dsl_scan_scrub_done(zio_t *zio)
 {
 	spa_t *spa = zio->io_spa;
 
-	//zio_data_buf_free(zio->io_data, zio->io_size);
+	zio_data_buf_free(zio->io_data, zio->io_size);
 
 	mutex_enter(&spa->spa_scrub_lock);
 	spa->spa_scrub_inflight--;
@@ -1815,35 +1815,6 @@ dsl_scan_scrub_cb(dsl_pool_t *dp, const dnode_phys_t *dnp,
 		zio_nowait(zio_read(NULL, spa, bp, data, size,
 				dsl_scan_scrub_done, NULL, ZIO_PRIORITY_SCRUB,
 		    zio_flags, zb));
-		zio_flags = ZIO_FLAG_SCAN_THREAD | ZIO_FLAG_RAW | ZIO_FLAG_CANFAIL;
-		zio_nowait(zio_read(NULL, spa, bp, data1, size,
-						NULL, NULL, ZIO_PRIORITY_SCRUB,
-				    zio_flags, zb));
-		blkptr_t* wbp=bp;
-		zbookmark_t* zbw=zb;
-		offset=blkid2offset(dnp, bp, zb);
-		//dmu_tx_t *tx;
-		//tx = dmu_tx_create(dp->dp_meta_objset);
-		//dmu_tx_hold_write(tx, zb->zb_object,
-				//    offset, size);
-		//err = dmu_tx_assign(tx, TXG_NOWAIT);
-				//if (err) {
-					//dmu_tx_abort(tx);
-					//return (err);
-				//}
-		//dmu_write(dp->dp_meta_objset,zb->zb_object, offset, size ,data, tx);
-		//dmu_tx_commit(tx);
-		//zio_flags=ZIO_FLAG_SCAN_THREAD | ZIO_FLAG_RAW | ZIO_FLAG_CANFAIL;
-		//zio_nowait(zio_rewrite(NULL, spa,0, wbp, data, size,
-			//	    NULL, NULL, ZIO_PRIORITY_ASYNC_WRITE,
-				//    zio_flags, NULL));
-
-#ifdef _KERNEL
-	if(	bp->blk_fill==1)
-	printk("Contents of the bp for %d are:%s\r\n",zb->zb_object,(char*)data1);
-#endif
-	zio_buf_free(data, size);
-	zio_buf_free(data1, size);
 
 	}
 
