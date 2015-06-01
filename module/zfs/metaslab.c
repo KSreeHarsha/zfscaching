@@ -1705,12 +1705,16 @@ top:
 
 		vd = mg->mg_vd;
 #ifdef _KERNEL
+		printk("------$$$$$$$$$$$$-------------------\n");
 		printk("Z TIER FLAG : %d\n",flags & ZIO_FLAG_TIER1);
 		printk("metaslab all flags: %d\n",flags );
 		printk("Vdev choosen : %d\n", vd->vdev_id);
+		printk("------$$$$$$$$$$$$-------------------\n");
 #endif
 
 //		if(vd->vdev_id==0 && flags & ZIO_FLAG_TIER1 )
+
+
 
 		/*
 		 * Don't allocate from faulted devices.
@@ -1752,6 +1756,7 @@ top:
 			all_zero = B_FALSE;
 			goto next;
 		}
+
 
 		ASSERT(mg->mg_class == mc);
 
