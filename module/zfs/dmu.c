@@ -781,7 +781,9 @@ dmu_move_long_range(objset_t *os, uint64_t object,
 	err = dnode_hold(os, object, FTAG, &dn);
 	if (err != 0)
 		return (err);
-	err = dmu_move_long_range_impl(os, dn,object, offset, length);
+	dump_indirect(dn);
+
+//	err = dmu_move_long_range_impl(os, dn,object, offset, length);
 
 	dnode_rele(dn, FTAG);
 	return (err);
@@ -900,9 +902,8 @@ dmu_free_long_range(objset_t *os, uint64_t object,
 	if (err != 0)
 		return (err);
 
-	dump_indirect(dn);
 
-	//err = dmu_free_long_range_impl(os, dn, offset, length);
+	err = dmu_free_long_range_impl(os, dn, offset, length);
 
 	/*
 	 * It is important to zero out the maxblkid when freeing the entire
