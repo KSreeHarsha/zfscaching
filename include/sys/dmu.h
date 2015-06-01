@@ -606,7 +606,7 @@ void dmu_write(objset_t *os, uint64_t object, uint64_t offset, uint64_t size,
 #define	DMU_MOVE_NO_TIER1	0 /* prefetch */
 #define	DMU_MOVE_TIER1	1 /* don't prefetch */
 void dmu_move(objset_t *os, uint64_t object, uint64_t offset, uint64_t size,
-    const void *buf, dmu_tx_t *tx,uint64_t flags);
+    const void *buf, dmu_tx_t *tx);
 void dmu_prealloc(objset_t *os, uint64_t object, uint64_t offset, uint64_t size,
 	dmu_tx_t *tx);
 #ifdef _KERNEL
