@@ -802,9 +802,9 @@ print_indirect(blkptr_t *bp, const zbookmark_t *zb,
 	ASSERT3U(BP_GET_LEVEL(bp), ==, zb->zb_level);
 #ifdef _KERNEL
 	for (i = 0; i < ndvas; i++)
-	printk("Blk Offset %16llx--%llu:%llx:%llx\n",(u_longlong_t)blkid2offset(dnp, bp, zb), (u_longlong_t)DVA_GET_VDEV(&dva[i]),
-		    (u_longlong_t)DVA_GET_OFFSET(&dva[i]),
-		    (u_longlong_t)DVA_GET_ASIZE(&dva[i]) );
+	//printk("Blk Offset %16llx--%llu:%llx:%llx\n",(u_longlong_t)blkid2offset(dnp, bp, zb), (u_longlong_t)DVA_GET_VDEV(&dva[i]),
+		//    (u_longlong_t)DVA_GET_OFFSET(&dva[i]),
+		  //  (u_longlong_t)DVA_GET_ASIZE(&dva[i]) );
 #endif
 	u_longlong_t vdev=DVA_GET_VDEV(&dva[0]);
 	u_longlong_t offset=blkid2offset(dnp, bp, zb);

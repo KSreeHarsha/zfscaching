@@ -751,7 +751,7 @@ dsl_scan_visitdnode(dsl_scan_t *scn, dsl_dataset_t *ds,
 {
 	int j;
 #ifdef _KERNEL
-	printk("Object in OS is:%d\n",object);
+	//printk("Object in OS is:%d\n",object);
 #endif
 	for (j = 0; j < dnp->dn_nblkptr; j++) {
 		zbookmark_t czb;
@@ -817,10 +817,10 @@ dsl_scan_visitbp(blkptr_t *bp, const zbookmark_t *zb,
 	 *    pbuf, bp);
 	 */
 #ifdef _KERNEL
-	  printk("visiting ds=%p/%llu zb=%llx/%llx/%llx/%llx buf=%p bp=%p",
-		     ds, ds ? ds->ds_object : 0,
-		     zb->zb_objset, zb->zb_object, zb->zb_level, zb->zb_blkid,
-		     pbuf, bp);
+	  //printk("visiting ds=%p/%llu zb=%llx/%llx/%llx/%llx buf=%p bp=%p",
+		  //   ds, ds ? ds->ds_object : 0,
+		    // zb->zb_objset, zb->zb_object, zb->zb_level, zb->zb_blkid,
+		     //pbuf, bp);
 #endif
 	if (bp->blk_birth <= scn->scn_phys.scn_cur_min_txg)
 		goto out;
@@ -1594,9 +1594,9 @@ dsl_scan_sync(dsl_pool_t *dp, dmu_tx_t *tx)
 	    (longlong_t)scn->scn_visited_this_txg,
 	    (longlong_t)NSEC2MSEC(gethrtime() - scn->scn_sync_start_time));
 #ifdef _KERNEL
-	printk("visited %llu blocks in %llums",
-		    (longlong_t)scn->scn_visited_this_txg,
-		    (longlong_t)NSEC2MSEC(gethrtime() - scn->scn_sync_start_time));
+	//printk("visited %llu blocks in %llums",
+		//    (longlong_t)scn->scn_visited_this_txg,
+		  //  (longlong_t)NSEC2MSEC(gethrtime() - scn->scn_sync_start_time));
 #endif
 	if (!scn->scn_pausing) {
 		scn->scn_done_txg = tx->tx_txg + 1;
@@ -1730,7 +1730,7 @@ dsl_scan_scrub_cb(dsl_pool_t *dp, const dnode_phys_t *dnp,
 	int err;
 	uint64_t offset;
 #ifdef _KERNEL
-	printk("Offset in dsl:%16llx \n", (u_longlong_t)blkid2offset(dnp, bp, zb));
+	//printk("Offset in dsl:%16llx \n", (u_longlong_t)blkid2offset(dnp, bp, zb));
 #endif
 	if (phys_birth <= scn->scn_phys.scn_min_txg ||
 	    phys_birth >= scn->scn_phys.scn_max_txg)
@@ -1761,10 +1761,10 @@ dsl_scan_scrub_cb(dsl_pool_t *dp, const dnode_phys_t *dnp,
 		    DVA_GET_VDEV(&bp->blk_dva[d]));
 
 #ifdef _KERNEL
-		printk("%llu:%llx:%llx \n",
-				    (u_longlong_t)DVA_GET_VDEV(&bp->blk_dva[d]),
-				    (u_longlong_t)DVA_GET_OFFSET(&bp->blk_dva[d]),
-				    (u_longlong_t)DVA_GET_ASIZE(&bp->blk_dva[d]));
+		//printk("%llu:%llx:%llx \n",
+			//	    (u_longlong_t)DVA_GET_VDEV(&bp->blk_dva[d]),
+				//    (u_longlong_t)DVA_GET_OFFSET(&bp->blk_dva[d]),
+				  //  (u_longlong_t)DVA_GET_ASIZE(&bp->blk_dva[d]));
 #endif
 		/*
 		 * Keep track of how much data we've examined so that
