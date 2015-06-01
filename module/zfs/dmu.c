@@ -786,8 +786,91 @@ dmu_move_long_range(objset_t *os, uint64_t object,
 	dnode_rele(dn, FTAG);
 	return (err);
 }
+static void
+print_indirect(blkptr_t *bp, const zbookmark_t *zb,
+    const dnode_phys_t *dnp)
+{
+	char blkbuf[BP_SPRINTF_LEN];
+	int l;
+	const dva_t *dva = bp->blk_dva;
+
+	ASSERT3U(BP_GET_TYPE(bp), ==, dnp->dn_type);
+	ASSERT3U(BP_GET_LEVEL(bp), ==, zb->zb_level);
+#ifdef
+	printk("Blk Offset %16llx--%llu:%llx:%llx\n", (u_longlong_t)DVA_GET_VDEV(&dva[0]),
+		    (u_longlong_t)DVA_GET_OFFSET(&dva[0]),
+		    (u_longlong_t)DVA_GET_ASIZE(&dva[0]), (u_longlong_t)blkid2offset(dnp, bp, zb));
+#endif
+	ASSERT(zb->zb_level >= 0);
 
 
+}
+
+static int
+visit_indirect(spa_t *spa, const dnode_phys_t *dnp,
+    blkptr_t *bp, const zbookmark_t *zb)
+{
+	int err = 0;
+
+	if (bp->blk_birth == 0)
+		return (0);
+
+	print_indirect(bp, zb, dnp);
+
+	if (BP_GET_LEVEL(bp) > 0) {
+		uint32_t flags = ARC_WAIT;
+		int i;
+		blkptr_t *cbp;
+		int epb = BP_GET_LSIZE(bp) >> SPA_BLKPTRSHIFT;
+		arc_buf_t *buf;
+		uint64_t fill = 0;
+
+		err = arc_read(NULL, spa, bp, arc_getbuf_func, &buf,
+		    ZIO_PRIORITY_ASYNC_READ, ZIO_FLAG_CANFAIL, &flags, zb);
+		if (err)
+			return (err);
+		ASSERT(buf->b_data);
+
+		/* recursively visit blocks below this */
+		cbp = buf->b_data;
+		for (i = 0; i < epb; i++, cbp++) {
+			zbookmark_t czb;
+
+			SET_BOOKMARK(&czb, zb->zb_objset, zb->zb_object,
+			    zb->zb_level - 1,
+			    zb->zb_blkid * epb + i);
+			err = visit_indirect(spa, dnp, cbp, &czb);
+			if (err)
+				break;
+			fill += cbp->blk_fill;
+		}
+		if (!err)
+			ASSERT3U(fill, ==, bp->blk_fill);
+		(void) arc_buf_remove_ref(buf, &buf);
+	}
+
+	return (err);
+}
+
+static void
+dump_indirect(dnode_t *dn)
+{
+	dnode_phys_t *dnp = dn->dn_phys;
+	int j;
+	zbookmark_t czb;
+
+	//(void) printf("Indirect blocks:\n");
+
+	SET_BOOKMARK(&czb, dmu_objset_id(dn->dn_objset),
+	    dn->dn_object, dnp->dn_nlevels - 1, 0);
+	for (j = 0; j < dnp->dn_nblkptr; j++) {
+		czb.zb_blkid = j;
+		(void) visit_indirect(dmu_objset_spa(dn->dn_objset), dnp,
+		    &dnp->dn_blkptr[j], &czb);
+	}
+
+	//(void) printf("\n");
+}
 int
 dmu_free_long_range(objset_t *os, uint64_t object,
     uint64_t offset, uint64_t length)
@@ -798,7 +881,9 @@ dmu_free_long_range(objset_t *os, uint64_t object,
 	err = dnode_hold(os, object, FTAG, &dn);
 	if (err != 0)
 		return (err);
-	err = dmu_free_long_range_impl(os, dn, offset, length);
+
+	dump_indirect(dn);
+	//err = dmu_free_long_range_impl(os, dn, offset, length);
 
 	/*
 	 * It is important to zero out the maxblkid when freeing the entire
