@@ -1757,9 +1757,9 @@ top:
 			goto next;
 		}
 
-		if((flags & ZIO_FLAG_TIER1) && vd->vdev_id==0)
-			goto next;
-		else if (vd->vdev_id!=0)
+		//if((flags & ZIO_FLAG_TIER1) && vd->vdev_id==0)
+			//goto next;
+		if (vd->vdev_id!=0)
 			goto next;
 
 
