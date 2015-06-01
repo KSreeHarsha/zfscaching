@@ -786,6 +786,24 @@ dmu_move_long_range(objset_t *os, uint64_t object,
 	dnode_rele(dn, FTAG);
 	return (err);
 }
+
+static uint64_t
+blkid2offset(const dnode_phys_t *dnp, const blkptr_t *bp,
+    const zbookmark_t *zb)
+{
+	if (dnp == NULL) {
+		ASSERT(zb->zb_level < 0);
+		if (zb->zb_object == 0)
+			return (zb->zb_blkid);
+		return (zb->zb_blkid * BP_GET_LSIZE(bp));
+	}
+
+	ASSERT(zb->zb_level >= 0);
+
+	return ((zb->zb_blkid <<
+	    (zb->zb_level * (dnp->dn_indblkshift - SPA_BLKPTRSHIFT))) *
+	    dnp->dn_datablkszsec << SPA_MINBLOCKSHIFT);
+}
 static void
 print_indirect(blkptr_t *bp, const zbookmark_t *zb,
     const dnode_phys_t *dnp)
