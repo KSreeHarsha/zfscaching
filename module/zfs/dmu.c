@@ -789,7 +789,7 @@ blkid2offset(const dnode_phys_t *dnp, const blkptr_t *bp,
 }
 static void
 print_indirect(blkptr_t *bp, const zbookmark_t *zb,
-    const dnode_phys_t *dnp)
+    const dnode_phys_t *dnp,objset_t *os, uint64_t object)
 {
 	char blkbuf[BP_SPRINTF_LEN];
 	int l;
@@ -804,6 +804,26 @@ print_indirect(blkptr_t *bp, const zbookmark_t *zb,
 		    (u_longlong_t)DVA_GET_OFFSET(&dva[i]),
 		    (u_longlong_t)DVA_GET_ASIZE(&dva[i]) );
 #endif
+	u_longlong_t vdev=DVA_GET_VDEV(&dva[0]);
+	u_longlong_t offset=blkid2offset(dnp, bp, zb);
+	u_longlong_t asize=DVA_GET_ASIZE(&dva[0]);
+
+
+	  void *buf=kmem_alloc(size, KM_PUSHPAGE);
+			tx = dmu_tx_create(os);
+			dmu_tx_hold_write(tx,object,offset, asize);
+			err = dmu_tx_assign(tx, TXG_NOWAIT);
+			if (err) {
+				dmu_tx_abort(tx);
+				return (err);
+			}
+			flags=DMU_MOVE_TIER1;
+			dmu_move(os,object, offset, asize ,buf, tx);
+			//dnode_free_range(dn, chunk_begin, chunk_end - chunk_begin, tx);
+			dmu_tx_commit(tx);
+			kmem_free(buf,size);
+
+
 	ASSERT(zb->zb_level >= 0);
 
 
@@ -811,14 +831,14 @@ print_indirect(blkptr_t *bp, const zbookmark_t *zb,
 
 static int
 visit_indirect(spa_t *spa, const dnode_phys_t *dnp,
-    blkptr_t *bp, const zbookmark_t *zb)
+    blkptr_t *bp, const zbookmark_t *zb,objset_t *os, uint64_t object)
 {
 	int err = 0;
 
 	if (bp->blk_birth == 0)
 		return (0);
 
-	print_indirect(bp, zb, dnp);
+	print_indirect(bp, zb, dnp,os,object);
 
 	if (BP_GET_LEVEL(bp) > 0) {
 		uint32_t flags = ARC_WAIT;
@@ -856,7 +876,7 @@ visit_indirect(spa_t *spa, const dnode_phys_t *dnp,
 }
 
 static void
-dump_indirect(dnode_t *dn)
+dump_indirect(dnode_t *dn,objset_t *os, uint64_t object)
 {
 	dnode_phys_t *dnp = dn->dn_phys;
 	int j;
@@ -869,7 +889,7 @@ dump_indirect(dnode_t *dn)
 	for (j = 0; j < dnp->dn_nblkptr; j++) {
 		czb.zb_blkid = j;
 		(void) visit_indirect(dmu_objset_spa(dn->dn_objset), dnp,
-		    &dnp->dn_blkptr[j], &czb);
+		    &dnp->dn_blkptr[j], &czb,os, object);
 	}
 
 	//(void) printf("\n");
@@ -887,7 +907,7 @@ dmu_move_long_range(objset_t *os, uint64_t object,
 	err = dnode_hold(os, object, FTAG, &dn);
 	if (err != 0)
 		return (err);
-	dump_indirect(dn);
+	dump_indirect(dn,os,object);
 
 //	err = dmu_move_long_range_impl(os, dn,object, offset, length);
 
@@ -1077,6 +1097,73 @@ dmu_write(objset_t *os, uint64_t object, uint64_t offset, uint64_t size,
 
 void
 dmu_move(objset_t *os, uint64_t object, uint64_t offset, uint64_t size,
+    const void *buf, dmu_tx_t *tx)
+{
+	dnode_t *dn;
+		dmu_buf_t **dbp;
+		int numbufs, err;
+		uint32_t flags=DMU_READ_PREFETCH;
+
+		err = dnode_hold(os, object, FTAG, &dn);
+		if (err)
+			return (err);
+
+		/*
+		 * Deal with odd block sizes, where there can't be data past the first
+		 * block.  If we ever do the tail block optimization, we will need to
+		 * handle that here as well.
+		 */
+		if (dn->dn_maxblkid == 0) {
+			int newsz = offset > dn->dn_datablksz ? 0 :
+			    MIN(size, dn->dn_datablksz - offset);
+			bzero((char *)buf + newsz, size - newsz);
+			size = newsz;
+		}
+
+		while (size > 0) {
+			uint64_t mylen = MIN(size, DMU_MAX_ACCESS / 2);
+			int i;
+
+			/*
+			 * NB: we could do this block-at-a-time, but it's nice
+			 * to be reading in parallel.
+			 */
+			err = dmu_buf_hold_array_by_dnode(dn, offset, mylen,
+			    TRUE, FTAG, &numbufs, &dbp, flags);
+			if (err)
+				break;
+
+			for (i = 0; i < numbufs; i++) {
+				int tocpy;
+				int bufoff;
+				dmu_buf_t *db = dbp[i];
+
+				ASSERT(size > 0);
+
+				bufoff = offset - db->db_offset;
+				tocpy = (int)MIN(db->db_size - bufoff, size);
+
+				if (tocpy == db->db_size)
+						dmu_buf_will_fill(db, tx);
+				else
+						dmu_buf_will_dirty(db, tx);
+
+				bcopy((char *)db->db_data + bufoff, buf, tocpy);
+				(void) memcpy((char *)db->db_data + bufoff, buf, tocpy);
+
+				offset += tocpy;
+				size -= tocpy;
+				buf = (char *)buf + tocpy;
+			}
+			dmu_buf_rele_array(dbp, numbufs, FTAG);
+		}
+		dnode_rele(dn, FTAG);
+		return (err);
+}
+
+
+void
+dmu_move_1(objset_t *os, uint64_t object, uint64_t offset, uint64_t size,
     const void *buf, dmu_tx_t *tx,uint64_t flags)
 {
 	dmu_buf_t **dbp;
