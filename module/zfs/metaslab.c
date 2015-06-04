@@ -31,6 +31,8 @@
 #include <sys/metaslab_impl.h>
 #include <sys/vdev_impl.h>
 #include <sys/zio.h>
+#include <sys/spa_impl.h>
+
 
 #define	WITH_DF_BLOCK_ALLOCATOR
 
