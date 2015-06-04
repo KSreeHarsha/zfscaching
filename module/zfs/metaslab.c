@@ -1772,8 +1772,8 @@ top:
 			goto next;
 		//else if (!SSDallocatable && vd->vdev_id!=0)
 			//HDDallocating=B_TRUE;
-		//else if (vd->vdev_id!=0)
-			//goto next;
+		if (vd->vdev_id!=0)
+			goto next;
 
 
 
