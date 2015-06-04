@@ -1772,6 +1772,15 @@ top:
 			goto next;
 		//else if (!SSDallocatable && vd->vdev_id!=0)
 			//HDDallocating=B_TRUE;
+
+#ifdef _KERNEL
+		printk("------$$$$$$$$$$$$-------------------\n");
+		printk("Z TIER FLAG : %d\n",flags & ZIO_FLAG_TIER1);
+		printk("metaslab all flags: %d\n",flags );
+		printk("Vdev choosen : %d\n", vd->vdev_id);
+		printk("------$$$$$$$$$$$$-------------------\n");
+#endif
+
 		if (!(flags & ZIO_FLAG_TIER1) && vd->vdev_id!=0)
 			 goto next;
 
