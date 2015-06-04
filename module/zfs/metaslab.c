@@ -1620,11 +1620,18 @@ metaslab_alloc_dva(spa_t *spa, metaslab_class_t *mc, uint64_t psize,
 	int all_zero;
 	int zio_lock = B_FALSE;
 	boolean_t allocatable;
+	boolean_t SSDallocatable;
+	boolean_t HDDallocating;
+
 	uint64_t offset = -1ULL;
 	uint64_t asize;
 	uint64_t distance;
 
 	ASSERT(!DVA_IS_VALID(&dva[d]));
+
+	vdev_t *rvd = spa->spa_root_vdev;
+	vdev_t *topvdSSD=rvd->vdev_child[0];
+	metaslab_group_t *mgSSD=topvdSSD->vdev_mg;
 
 	/*
 	 * For testing, make some blocks above a certain size be gang blocks.
@@ -1757,9 +1764,13 @@ top:
 			goto next;
 		}
 
-		//if((flags & ZIO_FLAG_TIER1) && vd->vdev_id==0)
-			//goto next;
-		if (vd->vdev_id!=0)
+		SSDallocatable=metaslab_group_allocatable(mgSSD);
+
+		if((flags & ZIO_FLAG_TIER1) && vd->vdev_id==0)
+			goto next;
+		else if (!SSDallocatable && vd->vdev_id!=0)
+			HDDallocating=B_TRUE;
+		else if (vd->vdev_id!=0)
 			goto next;
 
 
