@@ -1163,7 +1163,7 @@ zpool_do_move_t1_t2(int argc, char **argv)
  boolean_t force = B_FALSE;
  int c;
  char *pool;
- int fsize;
+ int filenum=-1;
 
  zpool_handle_t *zhp;
  int ret;
@@ -1191,7 +1191,8 @@ zpool_do_move_t1_t2(int argc, char **argv)
  }
 
  pool = argv[0];
- int filenum=atoi(argv[1]);
+ if (argc==2)
+	 filenum=atoi(argv[1]);
 
  if ((zhp = zpool_open_canfail(g_zfs, pool)) == NULL) {
  return (1);
