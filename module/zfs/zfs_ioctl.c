@@ -1632,7 +1632,7 @@ zfs_ioc_pool_movet1t2(zfs_cmd_t *zc)
 	char  *filename;
 	uint64_t filenum=0;
 	//(void) strlcpy(filename, (char*)zc->zc_nvlist_src, sizeof (filename));
-	filenum=zc->zc_nvlist_src_size;
+	filenum=zc->zc_cookie;
 	//error = spa_destroy(zc->zc_name);
 	if ((spa = spa_lookup(zc->zc_name)) == NULL) {
 	#ifdef _KERNEL
