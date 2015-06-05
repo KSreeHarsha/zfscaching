@@ -668,6 +668,11 @@ dmu_free_long_range_impl(objset_t *os, dnode_t *dn, uint64_t offset,
 }
 
 
+
+
+
+
+
 static uint64_t
 blkid2offset(const dnode_phys_t *dnp, const blkptr_t *bp,
     const zbookmark_t *zb)
@@ -730,7 +735,7 @@ bp_indirect(blkptr_t *bp, const zbookmark_t *zb,
 }
 
 static int
-bp_indirect(spa_t *spa, const dnode_phys_t *dnp,
+visit_indirect(spa_t *spa, const dnode_phys_t *dnp,
     blkptr_t *bp, const zbookmark_t *zb,objset_t *os, uint64_t object,int* inflightblocks)
 {
 	int err = 0;
@@ -739,7 +744,7 @@ bp_indirect(spa_t *spa, const dnode_phys_t *dnp,
 		return (0);
 
 
-	print_indirect(bp, zb, dnp,os,object,inflightblocks);
+	bp_indirect(bp, zb, dnp,os,object,inflightblocks);
 
 	if (BP_GET_LEVEL(bp) > 0) {
 		uint32_t flags = ARC_WAIT;
