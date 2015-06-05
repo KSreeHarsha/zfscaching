@@ -1609,7 +1609,8 @@ static int
 dump_one_dir(const char *dsname, void *arg)
 {
 	int error;
-	int l=*((int*)arg);
+	//int l=*((int*)arg);
+	int l;
 	objset_t *os;
 
 	 error = dmu_objset_hold(dsname, FTAG, &os);
