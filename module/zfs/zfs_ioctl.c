@@ -1609,7 +1609,7 @@ static int
 dump_one_dir(const char *dsname, void *arg)
 {
 	int error;
-	int l=0;
+	int l=*((int*)arg);
 	objset_t *os;
 
 	 error = dmu_objset_hold(dsname, FTAG, &os);
@@ -1620,8 +1620,10 @@ dump_one_dir(const char *dsname, void *arg)
 		 #endif
 		return (0);
 	}
-	if(filenum==-1)
-		l=1;
+#ifdef _KERNEL
+	printk("Num value is:%d\r\n",l);
+#endif
+
 	dump_dir(os);
 	dmu_objset_rele(os, FTAG);
 	//dmu_objset_disown(os, FTAG);
@@ -1629,12 +1631,12 @@ dump_one_dir(const char *dsname, void *arg)
 }
 
 static void
-dump_zpool(spa_t *spa)
+dump_zpool(spa_t *spa,int filenum)
 {
 	//dsl_pool_t *dp = spa_get_dsl(spa);
     //dump_dir(dp->dp_meta_objset);
 	(void) dmu_objset_find(spa_name(spa), dump_one_dir,
-			    NULL, DS_FIND_SNAPSHOTS | DS_FIND_CHILDREN);
+			    &filenum, DS_FIND_SNAPSHOTS | DS_FIND_CHILDREN);
 }
 
 static int
@@ -1651,7 +1653,7 @@ zfs_ioc_pool_movet1t2(zfs_cmd_t *zc)
 	printk("Error while retriving spa\r\n");
 	#endif
 	 }
-	dump_zpool(spa);
+	dump_zpool(spa,filenum);
  	 #ifdef _KERNEL
 	printk("Filename: %s zc_cookie: %d:",filename,filenum);
 	printk("Move data from tier 1 to tier 2\r\n");
