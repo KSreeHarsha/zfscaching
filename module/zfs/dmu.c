@@ -668,109 +668,6 @@ dmu_free_long_range_impl(objset_t *os, dnode_t *dn, uint64_t offset,
 }
 
 
-
-static int
-dmu_move_long_range_impl(objset_t *os, dnode_t *dn,uint64_t object, uint64_t offset,
-    uint64_t length)
-{
-
-#ifdef _KERNEL
-
-	printk("Entering dmu_move_long_range_impl\n");
-#endif
-	uint64_t object_size = (dn->dn_maxblkid + 1) * dn->dn_datablksz;
-	int err;
-	int dread_err;
-	uint64_t size=0;
-	uint64_t flags=0;
-	uint64_t error=0;
-
-	uint64_t start = 0;
-	uint64_t end;
-	uint64_t blkfill = DNODES_PER_BLOCK;
-	int minlvl = 0;
-
-			for (;;) {
-				char segsize[32];
-				error = dnode_next_offset(dn,
-				    0, &start, minlvl, blkfill, 0);
-				if (error)
-					break;
-				end = start;
-				error = dnode_next_offset(dn,
-				    DNODE_FIND_HOLE, &end, minlvl, blkfill, 0);
-				size=end - start;
-#ifdef _KERNEL
-		printk("Start:%d End:%d Size:%d\n",start,end,size);
-#endif
-				if (error)
-					break;
-				start = end;
-			}
-#ifdef _KERNEL
-
-	printk("Leaving dmu_move_long_range_impl\n");
-#endif
-
-
-	return (0);
-}
-
-static int
-dmu_move_long_range_impl_1(objset_t *os, dnode_t *dn,uint64_t object, uint64_t offset,
-    uint64_t length)
-{
-	uint64_t object_size = (dn->dn_maxblkid + 1) * dn->dn_datablksz;
-	int err;
-	int dread_err;
-	uint64_t size=0;
-	uint64_t flags=0;
-
-
-	if (offset >= object_size)
-		return (0);
-
-	if (length == DMU_OBJECT_END || offset + length > object_size)
-		length = object_size - offset;
-
-	while (length != 0) {
-		uint64_t chunk_end, chunk_begin;
-#ifdef _KERNEL
-		printk("Start:%d End:%d",chunk_begin,chunk_end);
-#endif
-		dmu_tx_t *tx;
-
-		chunk_end = chunk_begin = offset + length;
-
-		/* move chunk_begin backwards to the beginning of this chunk */
-		err = get_next_chunk(dn, &chunk_begin, offset);
-		if (err)
-			return (err);
-		ASSERT3U(chunk_begin, >=, offset);
-		ASSERT3U(chunk_begin, <=, chunk_end);
-		size=chunk_end - chunk_begin;
-		void *buf=kmem_alloc(size, KM_PUSHPAGE);
-		dread_err=dmu_read(os,object,chunk_begin,size,buf,DMU_READ_PREFETCH);
-		/**tx = dmu_tx_create(os);
-		dmu_tx_hold_write(tx, dn->dn_object,
-		    chunk_begin, size);
-		err = dmu_tx_assign(tx, TXG_NOWAIT);
-		if (err) {
-			dmu_tx_abort(tx);
-			return (err);
-		}
-		flags=DMU_MOVE_TIER1;
-		//dmu_move(os,object, chunk_begin, size ,buf, tx, flags);
-		//dnode_free_range(dn, chunk_begin, chunk_end - chunk_begin, tx);
-		dmu_tx_commit(tx);**/
-		kmem_free(buf,size);
-		length -= chunk_end - chunk_begin;
-	}
-	return (0);
-}
-
-
-
 static uint64_t
 blkid2offset(const dnode_phys_t *dnp, const blkptr_t *bp,
     const zbookmark_t *zb)
@@ -789,7 +686,7 @@ blkid2offset(const dnode_phys_t *dnp, const blkptr_t *bp,
 	    dnp->dn_datablkszsec << SPA_MINBLOCKSHIFT);
 }
 static void
-print_indirect(blkptr_t *bp, const zbookmark_t *zb,
+bp_indirect(blkptr_t *bp, const zbookmark_t *zb,
     const dnode_phys_t *dnp,objset_t *os, uint64_t object,int* inflightblocks)
 {
 	char blkbuf[BP_SPRINTF_LEN];
@@ -802,10 +699,10 @@ print_indirect(blkptr_t *bp, const zbookmark_t *zb,
 	ASSERT3U(BP_GET_TYPE(bp), ==, dnp->dn_type);
 	ASSERT3U(BP_GET_LEVEL(bp), ==, zb->zb_level);
 #ifdef _KERNEL
-	for (i = 0; i < ndvas; i++)
-	printk("Blk Offset %16llx--%llu:%llx:%llx\n",(u_longlong_t)blkid2offset(dnp, bp, zb), (u_longlong_t)DVA_GET_VDEV(&dva[i]),
-		   (u_longlong_t)DVA_GET_OFFSET(&dva[i]),
-		    (u_longlong_t)DVA_GET_ASIZE(&dva[i]) );
+	//for (i = 0; i < ndvas; i++)
+	//printk("Blk Offset %16llx--%llu:%llx:%llx\n",(u_longlong_t)blkid2offset(dnp, bp, zb), (u_longlong_t)DVA_GET_VDEV(&dva[i]),
+		   //(u_longlong_t)DVA_GET_OFFSET(&dva[i]),
+		    //(u_longlong_t)DVA_GET_ASIZE(&dva[i]) );
 #endif
 	u_longlong_t vdev=DVA_GET_VDEV(&dva[0]);
 	u_longlong_t offset=blkid2offset(dnp, bp, zb);
@@ -813,7 +710,6 @@ print_indirect(blkptr_t *bp, const zbookmark_t *zb,
 	u_longlong_t level= BP_GET_LEVEL(bp);
 
 	if (level==0 && vdev==0){
-	        //void *buf=kmem_alloc(asize, KM_PUSHPAGE);
 			*inflightblocks=*inflightblocks+1;
 		    void *buf= zio_data_buf_alloc(asize);
 			tx = dmu_tx_create(os);
@@ -823,11 +719,8 @@ print_indirect(blkptr_t *bp, const zbookmark_t *zb,
 				dmu_tx_abort(tx);
 				return (err);
 			}
-			//lags=DMU_MOVE_TIER1;
 			dmu_move(os,object, offset, asize ,buf, tx);
-			//dnode_free_range(dn, chunk_begin, chunk_end - chunk_begin, tx);
 			dmu_tx_commit(tx);
-			//kmem_free(buf,asize);
 			zio_data_buf_free(buf, asize);
 	}
 
@@ -837,7 +730,7 @@ print_indirect(blkptr_t *bp, const zbookmark_t *zb,
 }
 
 static int
-visit_indirect(spa_t *spa, const dnode_phys_t *dnp,
+bp_indirect(spa_t *spa, const dnode_phys_t *dnp,
     blkptr_t *bp, const zbookmark_t *zb,objset_t *os, uint64_t object,int* inflightblocks)
 {
 	int err = 0;
@@ -891,7 +784,6 @@ dump_indirect(dnode_t *dn,objset_t *os, uint64_t object)
 	int inflight_blocks=0;
 	zbookmark_t czb;
 
-	//(void) printf("Indirect blocks:\n");
 
 	SET_BOOKMARK(&czb, dmu_objset_id(dn->dn_objset),
 	    dn->dn_object, dnp->dn_nlevels - 1, 0);
@@ -901,7 +793,6 @@ dump_indirect(dnode_t *dn,objset_t *os, uint64_t object)
 		    &dnp->dn_blkptr[j], &czb,os, object,&inflight_blocks);
 	}
 
-	//(void) printf("\n");
 }
 
 int
@@ -910,16 +801,10 @@ dmu_move_long_range(objset_t *os, uint64_t object,
 {
 	dnode_t *dn;
 	int err;
-#ifdef _KERNEL
-	printk("Entering dmu_move_long_range\n");
-#endif
 	err = dnode_hold(os, object, FTAG, &dn);
 	if (err != 0)
 		return (err);
 	dump_indirect(dn,os,object);
-
-//	err = dmu_move_long_range_impl(os, dn,object, offset, length);
-
 	dnode_rele(dn, FTAG);
 	return (err);
 }
@@ -1171,52 +1056,6 @@ dmu_move(objset_t *os, uint64_t object, uint64_t offset, uint64_t size,
 }
 
 
-void
-dmu_move_1(objset_t *os, uint64_t object, uint64_t offset, uint64_t size,
-    const void *buf, dmu_tx_t *tx,uint64_t flags)
-{
-	dmu_buf_t **dbp;
-	int numbufs, i;
-
-	if (size == 0)
-		return;
-
-	VERIFY(0 == dmu_buf_hold_array(os, object, offset, size,
-	    FALSE, FTAG, &numbufs, &dbp));
-
-	for (i = 0; i < numbufs; i++) {
-		int tocpy;
-		int bufoff;
-		dmu_buf_t *db = dbp[i];
-
-		ASSERT(size > 0);
-
-		bufoff = offset - db->db_offset;
-		tocpy = (int)MIN(db->db_size - bufoff, size);
-
-		ASSERT(i == 0 || i == numbufs-1 || tocpy == db->db_size);
-
-		db->tier=1;
-#ifdef _KERNEL
-		printk("Tier flag has been set in dmu move\n");
-#endif
-
-		if (tocpy == db->db_size)
-			dmu_buf_will_fill(db, tx);
-		else
-			dmu_buf_will_dirty(db, tx);
-
-		(void) memcpy((char *)db->db_data + bufoff, buf, tocpy);
-
-		if (tocpy == db->db_size)
-			dmu_buf_fill_done(db, tx);
-
-		offset += tocpy;
-		size -= tocpy;
-		buf = (char *)buf + tocpy;
-	}
-	dmu_buf_rele_array(dbp, numbufs, FTAG);
-}
 
 void
 dmu_prealloc(objset_t *os, uint64_t object, uint64_t offset, uint64_t size,

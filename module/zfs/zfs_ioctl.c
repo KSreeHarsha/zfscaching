@@ -1537,13 +1537,9 @@ static void
 sync_object(objset_t *os, uint64_t object)
 {
 		dmu_buf_t *db = NULL;
-		dmu_object_info_t doi;
 		dnode_t *dn;
 		void *bonus = NULL;
 		size_t bsize = 0;
-		char iblk[32], dblk[32], lsize[32], asize[32], fill[32];
-		char bonus_size[32];
-		char aux[50];
 		int error;
 		int moverr;
 		int object_type=0;
@@ -1552,11 +1548,7 @@ sync_object(objset_t *os, uint64_t object)
 				dn = DMU_META_DNODE(os);
 		} else {
 				error = dmu_bonus_hold(os, object, FTAG, &db);
-				//if (error)
-						//fatal("dmu_bonus_hold(%llu) failed, errno %u",
-							//			object, error);
 				bonus = db->db_data;
-
 				bsize = db->db_size;
 				dn = DB_DNODE((dmu_buf_impl_t *)db);
 		}
@@ -1564,15 +1556,8 @@ sync_object(objset_t *os, uint64_t object)
 		uint64_t object_size = (dn->dn_maxblkid + 1) * dn->dn_datablksz;
 
 
-		if (object_type==19){
-			//int fsize=dump_znode(os,object,bonus,bsize);
-
+		if (object_type==DMU_OT_PLAIN_FILE_CONTENTS){
 			moverr= dmu_move_long_object(os,object);
-			#ifdef _KERNEL
-			printk("Object size is : %d\n",object_size);
-			printk("Error while moving  : %d\n",moverr);
-			#endif
-			//dmu_read_write(os, object,0,object_size);
 		}
 
 		if (db != NULL)

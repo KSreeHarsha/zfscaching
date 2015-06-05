@@ -1631,6 +1631,7 @@ metaslab_alloc_dva(spa_t *spa, metaslab_class_t *mc, uint64_t psize,
 
 	ASSERT(!DVA_IS_VALID(&dva[d]));
 
+	/* Used by tier code to determine if SSD is allocatable*/
 	vdev_t *rvd = spa->spa_root_vdev;
 	vdev_t *topvdSSD=rvd->vdev_child[0];
 	metaslab_group_t *mgSSD=topvdSSD->vdev_mg;
@@ -1713,17 +1714,6 @@ top:
 		ASSERT(mg->mg_activation_count == 1);
 
 		vd = mg->mg_vd;
-#ifdef _KERNEL
-		printk("------$$$$$$$$$$$$-------------------\n");
-		printk("Z TIER FLAG : %d\n",flags & ZIO_FLAG_TIER1);
-		printk("metaslab all flags: %d\n",flags );
-		printk("Vdev choosen : %d\n", vd->vdev_id);
-		printk("------$$$$$$$$$$$$-------------------\n");
-#endif
-
-//		if(vd->vdev_id==0 && flags & ZIO_FLAG_TIER1 )
-
-
 
 		/*
 		 * Don't allocate from faulted devices.
@@ -1771,11 +1761,6 @@ top:
 		if((flags & ZIO_FLAG_TIER1) && vd->vdev_id==0)
 			goto next;
 
-#ifdef _KERNEL
-		printk("------$$$$$$$$$$$$-------------------\n");
-		printk("SSDallocatable : %d\n",SSDallocatable);
-		printk("------$$$$$$$$$$$$-------------------\n");
-#endif
 
 		if (!(flags & ZIO_FLAG_TIER1) && vd->vdev_id!=0 && SSDallocatable)
 			 goto next;
