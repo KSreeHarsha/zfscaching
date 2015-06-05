@@ -51,6 +51,7 @@
 /*
  * Enable/disable nopwrite feature.
  */
+int max_inflight_blocks=20000;
 int zfs_nopwrite_enabled = 1;
 
 const dmu_object_type_info_t dmu_ot[DMU_OT_NUMTYPES] = {
