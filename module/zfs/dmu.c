@@ -51,7 +51,7 @@
 /*
  * Enable/disable nopwrite feature.
  */
-int max_inflight_blocks=20000;
+int max_inflight_blocks=5000;
 int zfs_nopwrite_enabled = 1;
 
 const dmu_object_type_info_t dmu_ot[DMU_OT_NUMTYPES] = {
@@ -812,7 +812,7 @@ print_indirect(blkptr_t *bp, const zbookmark_t *zb,
 	u_longlong_t asize=DVA_GET_ASIZE(&dva[0]);
 	u_longlong_t level= BP_GET_LEVEL(bp);
 
-	if (level==0 && vdev==0){
+	if (level==0 && vdev==0 && *inflightblocks<max_inflight_blocks){
 	        //void *buf=kmem_alloc(asize, KM_PUSHPAGE);
 			*inflightblocks=*inflightblocks+1;
 		    void *buf= zio_data_buf_alloc(asize);
@@ -843,6 +843,9 @@ visit_indirect(spa_t *spa, const dnode_phys_t *dnp,
 	int err = 0;
 
 	if (bp->blk_birth == 0)
+		return (0);
+
+	if(inflightblocks>max_inflight_blocks)
 		return (0);
 
 	print_indirect(bp, zb, dnp,os,object,inflightblocks);
