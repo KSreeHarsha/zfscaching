@@ -235,7 +235,7 @@ static const char *userquota_perms[] = {
 	ZFS_DELEG_PERM_GROUPUSED,
 	ZFS_DELEG_PERM_GROUPQUOTA,
 };
-static uint64_t filenum;
+int filenum;
 static int zfs_ioc_userspace_upgrade(zfs_cmd_t *zc);
 static int zfs_check_settable(const char *name, nvpair_t *property,
     cred_t *cr);
@@ -1574,8 +1574,8 @@ dump_dir(objset_t *os)
 	uint64_t object, object_count;
 	int error,print_header = 1;
 	object = 0;
-	//if(filenum==-1)
-	//{
+	if(filenum==-1)
+	{
 
 #ifdef _KERNEL
 		printk("Move everything\n");
@@ -1584,19 +1584,19 @@ dump_dir(objset_t *os)
 
 			sync_object(os, object);
 			object_count++;
-	//}
-	//}else if (filenum>0)
-	//{
-		}
+	}
+	}else if (filenum>0)
+	{
+
 #ifdef _KERNEL
 		printk("Move file:%d\n",filenum);
 #endif
-		//while ((error = dmu_object_next(os, &object, B_FALSE, 0)) == 0) {
+		while ((error = dmu_object_next(os, &object, B_FALSE, 0)) == 0) {
 
-		//if (filenum==object)
-			//sync_object(os, object);
+		 if (filenum==object)
+			 sync_object(os, object);
 
-	//}
+	}
 
 #ifdef _KERNEL
 		printk("Leaving dump_dir\n");
