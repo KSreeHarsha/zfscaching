@@ -789,7 +789,7 @@ blkid2offset(const dnode_phys_t *dnp, const blkptr_t *bp,
 }
 static void
 print_indirect(blkptr_t *bp, const zbookmark_t *zb,
-    const dnode_phys_t *dnp,objset_t *os, uint64_t object)
+    const dnode_phys_t *dnp,objset_t *os, uint64_t object,int* inflightblocks)
 {
 	char blkbuf[BP_SPRINTF_LEN];
 	int l;
@@ -813,6 +813,7 @@ print_indirect(blkptr_t *bp, const zbookmark_t *zb,
 
 	if (level==0 && vdev==0){
 	        //void *buf=kmem_alloc(asize, KM_PUSHPAGE);
+			*inflightblocks=*inflightblocks+1;
 		    void *buf= zio_data_buf_alloc(asize);
 			tx = dmu_tx_create(os);
 			dmu_tx_hold_write(tx,object,offset, asize);
@@ -836,14 +837,14 @@ print_indirect(blkptr_t *bp, const zbookmark_t *zb,
 
 static int
 visit_indirect(spa_t *spa, const dnode_phys_t *dnp,
-    blkptr_t *bp, const zbookmark_t *zb,objset_t *os, uint64_t object)
+    blkptr_t *bp, const zbookmark_t *zb,objset_t *os, uint64_t object,int* inflightblocks)
 {
 	int err = 0;
 
 	if (bp->blk_birth == 0)
 		return (0);
 
-	print_indirect(bp, zb, dnp,os,object);
+	print_indirect(bp, zb, dnp,os,object,inflightblocks);
 
 	if (BP_GET_LEVEL(bp) > 0) {
 		uint32_t flags = ARC_WAIT;
@@ -867,7 +868,7 @@ visit_indirect(spa_t *spa, const dnode_phys_t *dnp,
 			SET_BOOKMARK(&czb, zb->zb_objset, zb->zb_object,
 			    zb->zb_level - 1,
 			    zb->zb_blkid * epb + i);
-			err = visit_indirect(spa, dnp, cbp, &czb,os, object);
+			err = visit_indirect(spa, dnp, cbp, &czb,os, object,inflightblocks);
 			if (err)
 				break;
 			fill += cbp->blk_fill;
@@ -885,6 +886,7 @@ dump_indirect(dnode_t *dn,objset_t *os, uint64_t object)
 {
 	dnode_phys_t *dnp = dn->dn_phys;
 	int j;
+	int inflight_blocks=0;
 	zbookmark_t czb;
 
 	//(void) printf("Indirect blocks:\n");
@@ -894,7 +896,7 @@ dump_indirect(dnode_t *dn,objset_t *os, uint64_t object)
 	for (j = 0; j < dnp->dn_nblkptr; j++) {
 		czb.zb_blkid = j;
 		(void) visit_indirect(dmu_objset_spa(dn->dn_objset), dnp,
-		    &dnp->dn_blkptr[j], &czb,os, object);
+		    &dnp->dn_blkptr[j], &czb,os, object,&inflight_blocks);
 	}
 
 	//(void) printf("\n");
