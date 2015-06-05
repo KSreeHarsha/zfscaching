@@ -1641,7 +1641,7 @@ zfs_ioc_pool_movet1t2(zfs_cmd_t *zc)
 	 }
 	dump_zpool(spa,filename,filenum);
  	 #ifdef _KERNEL
-	printk("Filename: %s Filesize: %d:",filename,filenum);
+	printk("Filename: %s zc_cookie: %d:",filename,filenum);
 	printk("Move data from tier 1 to tier 2\r\n");
 	#endif
 	return (error);
