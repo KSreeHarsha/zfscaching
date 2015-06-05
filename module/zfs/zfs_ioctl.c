@@ -1582,6 +1582,10 @@ sync_object(objset_t *os, uint64_t object, int *print_header)
 static void
 dump_dir(objset_t *os)
 {
+
+#ifdef _KERNEL
+		printk("Entering dump_dir\n");
+#endif
 	uint64_t object, object_count;
 	int error,print_header = 1;
 	object = 0;
@@ -1609,6 +1613,10 @@ dump_dir(objset_t *os)
 
 	}
 
+#ifdef _KERNEL
+		printk("Leaving dump_dir\n");
+#endif
+
 
 }
 
@@ -1633,7 +1641,7 @@ dump_one_dir(const char *dsname, void *arg)
 }
 
 static void
-dump_zpool(spa_t *spa,const char* filename,const int filesize)
+dump_zpool(spa_t *spa)
 {
 	//dsl_pool_t *dp = spa_get_dsl(spa);
     //dump_dir(dp->dp_meta_objset);
@@ -1655,7 +1663,7 @@ zfs_ioc_pool_movet1t2(zfs_cmd_t *zc)
 	printk("Error while retriving spa\r\n");
 	#endif
 	 }
-	dump_zpool(spa,filename,filenum);
+	dump_zpool(spa);
  	 #ifdef _KERNEL
 	printk("Filename: %s zc_cookie: %d:",filename,filenum);
 	printk("Move data from tier 1 to tier 2\r\n");
