@@ -235,7 +235,7 @@ static const char *userquota_perms[] = {
 	ZFS_DELEG_PERM_GROUPUSED,
 	ZFS_DELEG_PERM_GROUPQUOTA,
 };
-int filenum;
+//int filenum;
 static int zfs_ioc_userspace_upgrade(zfs_cmd_t *zc);
 static int zfs_check_settable(const char *name, nvpair_t *property,
     cred_t *cr);
@@ -1565,17 +1565,17 @@ sync_object(objset_t *os, uint64_t object)
 
 }
 static void
-dump_dir(objset_t *os)
+dump_dir(objset_t *os,int object_no)
 {
 
 #ifdef _KERNEL
-	//	printk("Entering dump_dir\n");
+		printk("Entering dump_dir\n");
 #endif
 	uint64_t object, object_count;
 	int error,print_header = 1;
 	object = 0;
-	//if(filenum==-1)
-	//{
+	if(object_no==-1)
+	{
 
 #ifdef _KERNEL
 		printk("Move everything\n");
@@ -1584,20 +1584,20 @@ dump_dir(objset_t *os)
 
 			sync_object(os, object);
 			object_count++;
-	//}
-	//}else if (filenum>0)
-	//{
-		}
+	}
+	}else if (filenum>0)
+	{
+
 
 #ifdef _KERNEL
-		//printk("Move file:%d\n",filenum);
+		printk("Move file:%d\n",filenum);
 #endif
-		//while ((error = dmu_object_next(os, &object, B_FALSE, 0)) == 0) {
+		while ((error = dmu_object_next(os, &object, B_FALSE, 0)) == 0) {
 
-		 //if (filenum==object)
-			 //sync_object(os, object);
+		 if (filenum==object)
+			 sync_object(os, object);
 
-	//}
+	}
 
 #ifdef _KERNEL
 		printk("Leaving dump_dir\n");
@@ -1610,7 +1610,7 @@ static int
 dump_one_dir(const char *dsname, void *arg)
 {
 	int error;
-	int l=*((int*)arg);
+	int object_no=*((int*)arg);
 	//int l=0;
 	objset_t *os;
 
@@ -1626,7 +1626,7 @@ dump_one_dir(const char *dsname, void *arg)
 	printk("Num value is:%d\n",l);
 #endif
 
-	dump_dir(os);
+	dump_dir(os,object_no);
 	dmu_objset_rele(os, FTAG);
 	//dmu_objset_disown(os, FTAG);
 	return (0);
@@ -1647,6 +1647,7 @@ zfs_ioc_pool_movet1t2(zfs_cmd_t *zc)
 	int error=0;
 	spa_t *spa;
 	char  *filename;
+	int filenum=0;
 	//(void) strlcpy(filename, (char*)zc->zc_nvlist_src, sizeof (filename));
 	filenum=zc->zc_cookie;
 	//error = spa_destroy(zc->zc_name);
