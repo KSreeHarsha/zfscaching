@@ -1630,7 +1630,7 @@ zfs_ioc_pool_movet1t2(zfs_cmd_t *zc)
 	int error=0;
 	spa_t *spa;
 	char  *filename;
-	uint64_t filesize=0;
+	uint64_t filenum=0;
 	//(void) strlcpy(filename, (char*)zc->zc_nvlist_src, sizeof (filename));
 	filenum=zc->zc_nvlist_src_size;
 	//error = spa_destroy(zc->zc_name);
