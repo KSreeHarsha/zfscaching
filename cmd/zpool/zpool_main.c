@@ -1191,6 +1191,7 @@ zpool_do_move_t1_t2(int argc, char **argv)
  }
 
  pool = argv[0];
+ int filenum=argv[1];
 
  if ((zhp = zpool_open_canfail(g_zfs, pool)) == NULL) {
  return (1);
@@ -1199,7 +1200,7 @@ zpool_do_move_t1_t2(int argc, char **argv)
  /* The history must be logged as part of the export */
  log_history = B_FALSE;
 
- ret = (zpool_t1_t2(zhp,history_str) != 0);
+ ret = (zpool_t1_t2(zhp,filenum,history_str) != 0);
 
  zpool_close(zhp);
 

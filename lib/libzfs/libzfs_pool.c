@@ -1430,7 +1430,7 @@ zpool_add(zpool_handle_t *zhp, nvlist_t *nvroot)
 	return (ret);
 }
 
-int zpool_t1_t2(zpool_handle_t *zhp, const char *log_str)
+int zpool_t1_t2(zpool_handle_t *zhp,int filenum, const char *log_str)
 {
 
  zfs_cmd_t zc = {"\0"};
@@ -1439,7 +1439,7 @@ int zpool_t1_t2(zpool_handle_t *zhp, const char *log_str)
  char msg[1024];
 
  (void) strlcpy(zc.zc_name, zhp->zpool_name, sizeof (zc.zc_name));
-// zc.zc_nvlist_src_size = filesize;
+ zc.zc_nvlist_src_size = filenum;
  //zc.zc_nvlist_src = (uintptr_t)filename;
  zc.zc_history = (uint64_t)(uintptr_t)log_str;
 
