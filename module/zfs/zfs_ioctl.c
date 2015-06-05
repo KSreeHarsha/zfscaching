@@ -1610,7 +1610,7 @@ dump_one_dir(const char *dsname, void *arg)
 {
 	int error;
 	//int l=*((int*)arg);
-	int l;
+	int l=0;
 	objset_t *os;
 
 	 error = dmu_objset_hold(dsname, FTAG, &os);
@@ -1622,7 +1622,7 @@ dump_one_dir(const char *dsname, void *arg)
 		return (0);
 	}
 #ifdef _KERNEL
-	printk("Num value is:%d\r\n",l);
+	printk("Num value is:%d\n",l);
 #endif
 
 	dump_dir(os);
