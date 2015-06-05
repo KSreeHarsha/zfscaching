@@ -1534,7 +1534,7 @@ dump_znode(objset_t *os, uint64_t object, void *data, size_t size)
 	}
 
 static void
-sync_object(objset_t *os, uint64_t object, int *print_header)
+sync_object(objset_t *os, uint64_t object)
 {
 		dmu_buf_t *db = NULL;
 		dmu_object_info_t doi;
@@ -1597,7 +1597,7 @@ dump_dir(objset_t *os)
 #endif
 		while ((error = dmu_object_next(os, &object, B_FALSE, 0)) == 0) {
 
-			sync_object(os, object,&print_header);
+			sync_object(os, object);
 			object_count++;
 	}
 	}else if (filenum>0)
@@ -1609,7 +1609,7 @@ dump_dir(objset_t *os)
 		while ((error = dmu_object_next(os, &object, B_FALSE, 0)) == 0) {
 
 		if (filenum==object)
-			sync_object(os, object,&print_header);
+			sync_object(os, object);
 
 	}
 
