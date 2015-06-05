@@ -1587,9 +1587,10 @@ dump_dir(objset_t *os)
 	//}
 	//}else if (filenum>0)
 	//{
+		}
 
 #ifdef _KERNEL
-		printk("Move file:%d\n",filenum);
+		//printk("Move file:%d\n",filenum);
 #endif
 		//while ((error = dmu_object_next(os, &object, B_FALSE, 0)) == 0) {
 
@@ -1609,8 +1610,8 @@ static int
 dump_one_dir(const char *dsname, void *arg)
 {
 	int error;
-	//int l=*((int*)arg);
-	int l=0;
+	int l=*((int*)arg);
+	//int l=0;
 	objset_t *os;
 
 	 error = dmu_objset_hold(dsname, FTAG, &os);
