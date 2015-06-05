@@ -1623,7 +1623,7 @@ dump_one_dir(const char *dsname, void *arg)
 		return (0);
 	}
 #ifdef _KERNEL
-	printk("Num value is:%d\n",l);
+	printk("Num value is:%d\n",object_no);
 #endif
 
 	dump_dir(os,object_no);
