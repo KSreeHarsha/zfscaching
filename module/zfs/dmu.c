@@ -812,7 +812,7 @@ print_indirect(blkptr_t *bp, const zbookmark_t *zb,
 	u_longlong_t asize=DVA_GET_ASIZE(&dva[0]);
 	u_longlong_t level= BP_GET_LEVEL(bp);
 
-	if (level==0 && vdev==0 && *inflightblocks<max_inflight_blocks){
+	if (level==0 && vdev==0){
 	        //void *buf=kmem_alloc(asize, KM_PUSHPAGE);
 			*inflightblocks=*inflightblocks+1;
 		    void *buf= zio_data_buf_alloc(asize);
