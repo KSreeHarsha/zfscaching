@@ -1598,6 +1598,7 @@ dump_dir(objset_t *os,int object_no)
 			 sync_object(os, object);
 
 	}
+	}
 
 #ifdef _KERNEL
 		printk("Leaving dump_dir\n");
