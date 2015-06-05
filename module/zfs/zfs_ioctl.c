@@ -1585,16 +1585,16 @@ dump_dir(objset_t *os,int object_no)
 			sync_object(os, object);
 			object_count++;
 	}
-	}else if (filenum>0)
+	}else if (object_no>0)
 	{
 
 
 #ifdef _KERNEL
-		printk("Move file:%d\n",filenum);
+		printk("Move file:%d\n",object_no);
 #endif
 		while ((error = dmu_object_next(os, &object, B_FALSE, 0)) == 0) {
 
-		 if (filenum==object)
+		 if (object_no==object)
 			 sync_object(os, object);
 
 	}
