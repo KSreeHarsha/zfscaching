@@ -235,7 +235,7 @@ static const char *userquota_perms[] = {
 	ZFS_DELEG_PERM_GROUPUSED,
 	ZFS_DELEG_PERM_GROUPQUOTA,
 };
-
+static uint64_t filenum;
 static int zfs_ioc_userspace_upgrade(zfs_cmd_t *zc);
 static int zfs_check_settable(const char *name, nvpair_t *property,
     cred_t *cr);
@@ -1585,13 +1585,22 @@ dump_dir(objset_t *os)
 	uint64_t object, object_count;
 	int error,print_header = 1;
 	object = 0;
-	while ((error = dmu_object_next(os, &object, B_FALSE, 0)) == 0) {
-			//		(void) printf("--------------------4----------------\n");
-			//dump_object(os, object,&print_header);
-			//printf("object type is %d",object.dn_type);
+	if(filenum==-1)
+	{
+		while ((error = dmu_object_next(os, &object, B_FALSE, 0)) == 0) {
+
 			sync_object(os, object,&print_header);
 			object_count++;
 	}
+	}else if (filenum>0)
+	{
+		while ((error = dmu_object_next(os, &object, B_FALSE, 0)) == 0) {
+
+		if (filenum==object)
+			sync_object(os, object,&print_header);
+
+	}
+
 
 }
 
@@ -1630,7 +1639,6 @@ zfs_ioc_pool_movet1t2(zfs_cmd_t *zc)
 	int error=0;
 	spa_t *spa;
 	char  *filename;
-	uint64_t filenum=0;
 	//(void) strlcpy(filename, (char*)zc->zc_nvlist_src, sizeof (filename));
 	filenum=zc->zc_cookie;
 	//error = spa_destroy(zc->zc_name);
