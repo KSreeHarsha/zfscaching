@@ -1569,13 +1569,13 @@ dump_dir(objset_t *os)
 {
 
 #ifdef _KERNEL
-		printk("Entering dump_dir\n");
+	//	printk("Entering dump_dir\n");
 #endif
 	uint64_t object, object_count;
 	int error,print_header = 1;
 	object = 0;
-	if(filenum==-1)
-	{
+	//if(filenum==-1)
+	//{
 
 #ifdef _KERNEL
 		printk("Move everything\n");
@@ -1584,9 +1584,9 @@ dump_dir(objset_t *os)
 
 			sync_object(os, object);
 			object_count++;
-	}
-	}else if (filenum>0)
-	{
+	//}
+	//}else if (filenum>0)
+	//{
 
 #ifdef _KERNEL
 		printk("Move file:%d\n",filenum);
@@ -1596,7 +1596,7 @@ dump_dir(objset_t *os)
 		if (filenum==object)
 			sync_object(os, object);
 
-	}
+	//}
 
 #ifdef _KERNEL
 		printk("Leaving dump_dir\n");
