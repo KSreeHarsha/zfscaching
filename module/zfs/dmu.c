@@ -714,7 +714,7 @@ bp_indirect(blkptr_t *bp, const zbookmark_t *zb,
 	u_longlong_t asize=DVA_GET_ASIZE(&dva[0]);
 	u_longlong_t level= BP_GET_LEVEL(bp);
 
-	if (level==0 && vdev==0){
+	if (level==0 && vdev==0 && t1t2Flag==1){
 			*inflightblocks=*inflightblocks+1;
 		    void *buf= zio_data_buf_alloc(asize);
 			tx = dmu_tx_create(os);
@@ -727,6 +727,18 @@ bp_indirect(blkptr_t *bp, const zbookmark_t *zb,
 			dmu_move(os,object, offset, asize ,buf,t1t2Flag, tx);
 			dmu_tx_commit(tx);
 			zio_data_buf_free(buf, asize);
+	}else if (level==0 && vdev!=0 && t1t2Flag==2){
+		 void *buf= zio_data_buf_alloc(asize);
+		tx = dmu_tx_create(os);
+		dmu_tx_hold_write(tx,object,offset, asize);
+		err = dmu_tx_assign(tx, TXG_NOWAIT);
+		if (err) {
+			dmu_tx_abort(tx);
+			return (err);
+		}
+		dmu_move(os,object, offset, asize ,buf,t1t2Flag, tx);
+	    dmu_tx_commit(tx);
+		zio_data_buf_free(buf, asize);
 	}
 
 	ASSERT(zb->zb_level >= 0);
