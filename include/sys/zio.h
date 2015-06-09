@@ -197,7 +197,7 @@ enum zio_flag {
 	ZIO_FLAG_REEXECUTED	= 1 << 27,
 	ZIO_FLAG_DELEGATED	= 1 << 28,
 	ZIO_FLAG_FASTWRITE	= 1 << 29,
-	ZIO_FLAG_TIER0 = 1 << 30
+	ZIO_FLAG_TIER2 = 1 << 30
 
 };
 
