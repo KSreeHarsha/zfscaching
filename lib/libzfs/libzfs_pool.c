@@ -1459,6 +1459,35 @@ int zpool_t1_t2(zpool_handle_t *zhp,int filenum, const char *log_str)
  return (0);
 }
 
+int zpool_t2_t1(zpool_handle_t *zhp,int filenum, const char *log_str)
+{
+
+ zfs_cmd_t zc = {"\0"};
+ zfs_handle_t *zfp = NULL;
+ libzfs_handle_t *hdl = zhp->zpool_hdl;
+ char msg[1024];
+
+ (void) strlcpy(zc.zc_name, zhp->zpool_name, sizeof (zc.zc_name));
+ zc.zc_cookie = filenum;
+ //zc.zc_nvlist_src = (uintptr_t)filename;
+ zc.zc_history = (uint64_t)(uintptr_t)log_str;
+
+ if (zfs_ioctl(hdl, ZFS_IOC_POOL_MOVET2T1, &zc) != 0) {
+
+ (void) snprintf(msg, sizeof (msg), dgettext(TEXT_DOMAIN,
+ "cannot move datasets in '%s'"), zhp->zpool_name);
+
+ if (errno == EROFS) {
+ zfs_error_aux(hdl, dgettext(TEXT_DOMAIN,
+ "one or more devices is read only"));
+ (void) zfs_error(hdl, EZFS_BADDEV, msg);
+ } else {
+ (void) zpool_standard_error(hdl, errno, msg);
+ }
+ }
+ return (0);
+}
+
 /*
  * Exports the pool from the system.  The caller must ensure that there are no
  * mounted datasets in the pool.

@@ -2460,8 +2460,10 @@ dbuf_sync_indirect(dbuf_dirty_record_t *dr, dmu_tx_t *tx)
 	dbuf_write(dr, db->db_buf, tx);
 
 	zio = dr->dr_zio;
-	if (db->db.tier)
+	if (db->db.tier==1)
 		zio->io_flags|= ZIO_FLAG_TIER1;
+	if(db->db.tier==2)
+		zio->io_flags|= ZIO_FLAG_TIER2
 	mutex_enter(&dr->dt.di.dr_mtx);
 	dbuf_sync_list(&dr->dt.di.dr_children, tx);
 	ASSERT(list_head(&dr->dt.di.dr_children) == NULL);
@@ -2609,8 +2611,10 @@ dbuf_sync_leaf(dbuf_dirty_record_t *dr, dmu_tx_t *tx)
 		 * zio_nowait() invalidates the dbuf.
 		 */
 		DB_DNODE_EXIT(db);
-		if(db->db.tier)
+		if(db->db.tier==1)
 			dr->dr_zio->io_flags|=ZIO_FLAG_TIER1;
+		if(db->db.tier==2)
+			dr->dr_zio->io_flags|=ZIO_FLAG_TIER2;
 
 		zio_nowait(dr->dr_zio);
 	}

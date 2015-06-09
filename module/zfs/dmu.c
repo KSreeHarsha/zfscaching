@@ -692,7 +692,7 @@ blkid2offset(const dnode_phys_t *dnp, const blkptr_t *bp,
 }
 static void
 bp_indirect(blkptr_t *bp, const zbookmark_t *zb,
-    const dnode_phys_t *dnp,objset_t *os, uint64_t object,int* inflightblocks)
+    const dnode_phys_t *dnp,objset_t *os, uint64_t object,int* inflightblocks,uint64_t t1t2Flag)
 {
 	char blkbuf[BP_SPRINTF_LEN];
 	int l;
@@ -724,7 +724,7 @@ bp_indirect(blkptr_t *bp, const zbookmark_t *zb,
 				dmu_tx_abort(tx);
 				return (err);
 			}
-			dmu_move(os,object, offset, asize ,buf, tx);
+			dmu_move(os,object, offset, asize ,buf,t1t2Flag, tx);
 			dmu_tx_commit(tx);
 			zio_data_buf_free(buf, asize);
 	}
@@ -736,7 +736,7 @@ bp_indirect(blkptr_t *bp, const zbookmark_t *zb,
 
 static int
 visit_indirect(spa_t *spa, const dnode_phys_t *dnp,
-    blkptr_t *bp, const zbookmark_t *zb,objset_t *os, uint64_t object,int* inflightblocks)
+    blkptr_t *bp, const zbookmark_t *zb,objset_t *os, uint64_t object,int* inflightblocks,uint64_t t1t2Flag)
 {
 	int err = 0;
 
@@ -744,7 +744,7 @@ visit_indirect(spa_t *spa, const dnode_phys_t *dnp,
 		return (0);
 
 
-	bp_indirect(bp, zb, dnp,os,object,inflightblocks);
+	bp_indirect(bp, zb, dnp,os,object,inflightblocks,t1t2Flag);
 
 	if (BP_GET_LEVEL(bp) > 0) {
 		uint32_t flags = ARC_WAIT;
@@ -768,7 +768,7 @@ visit_indirect(spa_t *spa, const dnode_phys_t *dnp,
 			SET_BOOKMARK(&czb, zb->zb_objset, zb->zb_object,
 			    zb->zb_level - 1,
 			    zb->zb_blkid * epb + i);
-			err = visit_indirect(spa, dnp, cbp, &czb,os, object,inflightblocks);
+			err = visit_indirect(spa, dnp, cbp, &czb,os, object,inflightblocks, t1t2Flag);
 			if (err)
 				break;
 			fill += cbp->blk_fill;
@@ -782,7 +782,7 @@ visit_indirect(spa_t *spa, const dnode_phys_t *dnp,
 }
 
 static void
-dump_indirect(dnode_t *dn,objset_t *os, uint64_t object)
+dump_indirect(dnode_t *dn,objset_t *os, uint64_t object,uint64_t t1t2Flag)
 {
 	dnode_phys_t *dnp = dn->dn_phys;
 	int j;
@@ -795,21 +795,21 @@ dump_indirect(dnode_t *dn,objset_t *os, uint64_t object)
 	for (j = 0; j < dnp->dn_nblkptr; j++) {
 		czb.zb_blkid = j;
 		(void) visit_indirect(dmu_objset_spa(dn->dn_objset), dnp,
-		    &dnp->dn_blkptr[j], &czb,os, object,&inflight_blocks);
+		    &dnp->dn_blkptr[j], &czb,os, object,&inflight_blocks,t1t2Flag);
 	}
 
 }
 
 int
 dmu_move_long_range(objset_t *os, uint64_t object,
-    uint64_t offset, uint64_t length)
+    uint64_t offset, uint64_t length,uint64_t t1t2Flag)
 {
 	dnode_t *dn;
 	int err;
 	err = dnode_hold(os, object, FTAG, &dn);
 	if (err != 0)
 		return (err);
-	dump_indirect(dn,os,object);
+	dump_indirect(dn,os,object,t1t2Flag);
 	dnode_rele(dn, FTAG);
 	return (err);
 }
@@ -842,11 +842,11 @@ dmu_free_long_range(objset_t *os, uint64_t object,
 }
 
 int
-dmu_move_long_object(objset_t *os, uint64_t object)
+dmu_move_long_object(objset_t *os, uint64_t object,uint64_t t1t2Flag)
 {
 	int err;
 
-	err = dmu_move_long_range(os, object, 0, DMU_OBJECT_END);
+	err = dmu_move_long_range(os, object, 0, DMU_OBJECT_END,t1t2Flag);
 	if (err != 0)
 		return (err);
 }
@@ -996,7 +996,7 @@ dmu_write(objset_t *os, uint64_t object, uint64_t offset, uint64_t size,
 
 void
 dmu_move(objset_t *os, uint64_t object, uint64_t offset, uint64_t size,
-    const void *buf, dmu_tx_t *tx)
+    const void *buf, uint64_t t1t2Flag,dmu_tx_t *tx)
 {
 	dnode_t *dn;
 		dmu_buf_t **dbp;
@@ -1038,7 +1038,10 @@ dmu_move(objset_t *os, uint64_t object, uint64_t offset, uint64_t size,
 				dmu_buf_t *db = dbp[i];
 
 				ASSERT(size > 0);
-				db->tier=1;
+				if(t1t2Flag==1)
+					db->tier=1;
+				if(t1t2Flag==2)
+					db->tier=2;
 				bufoff = offset - db->db_offset;
 				tocpy = (int)MIN(db->db_size - bufoff, size);
 

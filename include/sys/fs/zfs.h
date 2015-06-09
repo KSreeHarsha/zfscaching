@@ -858,6 +858,7 @@ typedef enum zfs_ioc {
 	ZFS_IOC_SEND_SPACE,
 	ZFS_IOC_CLONE,
 	ZFS_IOC_POOL_MOVET1T2,
+	ZFS_IOC_POOL_MOVET2T1,
 
 	/*
 	 * Linux - 3/64 numbers reserved.

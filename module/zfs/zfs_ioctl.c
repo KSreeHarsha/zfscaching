@@ -1534,7 +1534,7 @@ dump_znode(objset_t *os, uint64_t object, void *data, size_t size)
 	}
 
 static void
-sync_object(objset_t *os, uint64_t object)
+sync_object(objset_t *os, uint64_t object,uint64_t t1t2Flag)
 {
 		dmu_buf_t *db = NULL;
 		dnode_t *dn;
@@ -1557,7 +1557,7 @@ sync_object(objset_t *os, uint64_t object)
 
 
 		if (object_type==DMU_OT_PLAIN_FILE_CONTENTS){
-			moverr= dmu_move_long_object(os,object);
+			moverr= dmu_move_long_object(os,object,t1t2Flag);
 		}
 
 		if (db != NULL)
@@ -1582,7 +1582,7 @@ dump_dir(objset_t *os,int object_no)
 #endif
 		while ((error = dmu_object_next(os, &object, B_FALSE, 0)) == 0) {
 
-			sync_object(os, object);
+			sync_object(os, object,1);
 			object_count++;
 	}
 	}else if (object_no>0)
@@ -1595,7 +1595,50 @@ dump_dir(objset_t *os,int object_no)
 		while ((error = dmu_object_next(os, &object, B_FALSE, 0)) == 0) {
 
 		 if (object_no==object)
-			 sync_object(os, object);
+			 sync_object(os, object,1);
+
+	}
+	}
+
+#ifdef _KERNEL
+		printk("Leaving dump_dir\n");
+#endif
+
+
+}
+
+static void
+dump_dirt2t1(objset_t *os,int object_no)
+{
+
+#ifdef _KERNEL
+		printk("Entering dump_dir\n");
+#endif
+	uint64_t object, object_count;
+	int error,print_header = 1;
+	object = 0;
+	if(object_no==-1)
+	{
+
+#ifdef _KERNEL
+		printk("Move everything\n");
+#endif
+		while ((error = dmu_object_next(os, &object, B_FALSE, 0)) == 0) {
+
+			sync_object(os, object,2);
+			object_count++;
+	}
+	}else if (object_no>0)
+	{
+
+
+#ifdef _KERNEL
+		printk("Move file:%d\n",object_no);
+#endif
+		while ((error = dmu_object_next(os, &object, B_FALSE, 0)) == 0) {
+
+		 if (object_no==object)
+			 sync_object(os, object,2);
 
 	}
 	}
@@ -1633,6 +1676,32 @@ dump_one_dir(const char *dsname, void *arg)
 	return (0);
 }
 
+static int
+dump_one_dirt2t1(const char *dsname, void *arg)
+{
+	int error;
+	int object_no=*((int*)arg);
+	//int l=0;
+	objset_t *os;
+
+	 error = dmu_objset_hold(dsname, FTAG, &os);
+	//error = dmu_objset_own(dsname, DMU_OST_ZFS, B_FALSE, FTAG, &os);
+	if (error) {
+		 #ifdef _KERNEL
+		 printk("Could not open %s, error %d\n", dsname, error);
+		 #endif
+		return (0);
+	}
+#ifdef _KERNEL
+	printk("Num value is:%d\n",object_no);
+#endif
+
+	dump_dirt2t1(os,object_no);
+	dmu_objset_rele(os, FTAG);
+	//dmu_objset_disown(os, FTAG);
+	return (0);
+}
+
 static void
 dump_zpool(spa_t *spa,int filenum)
 {
@@ -1641,6 +1710,16 @@ dump_zpool(spa_t *spa,int filenum)
 	(void) dmu_objset_find(spa_name(spa), dump_one_dir,
 			    &filenum, DS_FIND_SNAPSHOTS | DS_FIND_CHILDREN);
 }
+
+static void
+dump_zpoolt2t1(spa_t *spa,int filenum)
+{
+	//dsl_pool_t *dp = spa_get_dsl(spa);
+    //dump_dir(dp->dp_meta_objset);
+	(void) dmu_objset_find(spa_name(spa), dump_one_dirt2t1,
+			    &filenum, DS_FIND_SNAPSHOTS | DS_FIND_CHILDREN);
+}
+
 
 static int
 zfs_ioc_pool_movet1t2(zfs_cmd_t *zc)
@@ -1665,6 +1744,28 @@ zfs_ioc_pool_movet1t2(zfs_cmd_t *zc)
 	return (error);
 }
 
+static int
+zfs_ioc_pool_movet2t1(zfs_cmd_t *zc)
+{
+	int error=0;
+	spa_t *spa;
+	char  *filename;
+	int filenum=0;
+	//(void) strlcpy(filename, (char*)zc->zc_nvlist_src, sizeof (filename));
+	filenum=zc->zc_cookie;
+	//error = spa_destroy(zc->zc_name);
+	if ((spa = spa_lookup(zc->zc_name)) == NULL) {
+	#ifdef _KERNEL
+	printk("Error while retriving spa\r\n");
+	#endif
+	 }
+	dump_zpoolt2t1(spa,filenum);
+ 	 #ifdef _KERNEL
+	printk("Filename: %s zc_cookie: %d:",filename,filenum);
+	printk("Move data from tier 1 to tier 2\r\n");
+	#endif
+	return (error);
+}
 
 
 static int
@@ -5547,6 +5648,8 @@ zfs_ioctl_init(void)
 	zfs_ioctl_register_pool(ZFS_IOC_POOL_DESTROY, zfs_ioc_pool_destroy,
 	    zfs_secpolicy_config, B_FALSE, POOL_CHECK_NONE);
         zfs_ioctl_register_pool(ZFS_IOC_POOL_MOVET1T2, zfs_ioc_pool_movet1t2,
+		    zfs_secpolicy_config, B_FALSE, POOL_CHECK_NONE);
+	zfs_ioctl_register_pool(ZFS_IOC_POOL_MOVET2T1, zfs_ioc_pool_movet2t1,
 		    zfs_secpolicy_config, B_FALSE, POOL_CHECK_NONE);
 	zfs_ioctl_register_pool(ZFS_IOC_POOL_EXPORT, zfs_ioc_pool_export,
 	    zfs_secpolicy_config, B_FALSE, POOL_CHECK_NONE);

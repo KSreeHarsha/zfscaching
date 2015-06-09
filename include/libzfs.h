@@ -244,7 +244,7 @@ extern int zpool_add(zpool_handle_t *, nvlist_t *);
 
 
 extern int zpool_t1_t2(zpool_handle_t *,int filenum, const char *);
-extern int zpool_t2_t1(zpool_handle_t *, const char *);
+extern int zpool_t2_t1(zpool_handle_t *,int filenum, const char *);
 
 typedef struct splitflags {
 	/* do not split, but return the config that would be split off */
