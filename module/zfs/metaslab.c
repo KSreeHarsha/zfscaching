@@ -1758,6 +1758,10 @@ top:
 
 		SSDallocatable=metaslab_group_allocatable(mgSSD);
 
+#ifdef _KERNEL
+		printk("Tier2 flags %d:",(flags & ZIO_FLAG_TIER2));
+#endif
+
 		if((flags & ZIO_FLAG_TIER1) && vd->vdev_id==0)
 			goto next;
 
