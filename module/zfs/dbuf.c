@@ -2463,7 +2463,7 @@ dbuf_sync_indirect(dbuf_dirty_record_t *dr, dmu_tx_t *tx)
 	if (db->db.tier==1)
 		zio->io_flags|= ZIO_FLAG_TIER1;
 	if(db->db.tier==2)
-		zio->io_flags|= ZIO_FLAG_TIER2
+		zio->io_flags|= ZIO_FLAG_TIER2;
 	mutex_enter(&dr->dt.di.dr_mtx);
 	dbuf_sync_list(&dr->dt.di.dr_children, tx);
 	ASSERT(list_head(&dr->dt.di.dr_children) == NULL);
